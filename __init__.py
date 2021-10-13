@@ -4,12 +4,12 @@ from . import operators
 from .core import menus, preferences, ui, register_recursive, unregister_recursive
 
 bl_info = {
-        "name": "EZ UE4 Tools",
-        "description": "A tool for exporting fbx",
+        "name": "EZ-UE4 Tools",
+        "description": "A tool for exporting fbx for unreal engine 4",
         "author": "Felix",
         "version": (1, 0),
         "blender": (2, 93, 0),
-        "location": "EZ-UE4 menu",
+        "location": "EZ-UE4 Menu",
         "warning": "",
         "wiki_url": "https://github.com/Readock/EZ-UE4-Tools",
         "tracker_url": "https://github.com/Readock/EZ-UE4-Tools/issues/new/choose",

@@ -51,7 +51,7 @@ class EZUE4AddonPreferences(AddonPreferences):
     source_path: StringProperty(
         name="Project source folder",
         description="Location of raw source files for your project, used as a root for scene & import/export paths",
-        default= "//",
+        default= "",
         subtype='DIR_PATH',
         update=_source_path_changed,
     )
