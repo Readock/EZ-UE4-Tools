@@ -28,7 +28,7 @@ def select_objects_of_collection(collection):
     """ Select all Objects of a collection """
     bpy.ops.object.select_all(action='DESELECT')
     for obj in collection.all_objects:
-        if obj.type == 'MESH':
+        if obj and obj.type == 'MESH':
             obj.select_set(True)
 
 def select_objects_of_collection_with_name(collectionName):
@@ -79,3 +79,9 @@ def delete_collection_with_name(collectionName):
     if not collection:
         return
     delete_collection(collection)
+
+def unhide_collection(collection):
+    collection.hide_viewport = False
+    for obj in collection.all_objects:
+        if obj.type == 'MESH':
+            obj.hide_set(False)

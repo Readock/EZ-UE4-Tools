@@ -1,11 +1,11 @@
 import bpy
 
-from .objects import set_active
+from . import objects
 
-def apply_modifiers(object):
+def apply_modifiers(objectList):
     """ Apply all modifiers """
-    for obj in object:
+    for obj in objectList:
         if obj.type == "MESH":
-            set_active(obj)
+            objects.set_active(obj)
             for mod in obj.modifiers:
                 bpy.ops.object.modifier_apply(modifier=mod.name)

@@ -4,7 +4,7 @@ import bpy
 import os
 from bpy.props import BoolProperty
 from ..core import find_exportable_collections, get_export_collection_name, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog
-from ..utils import collections, modifiers
+from ..utils import collections, modifiers, objects
 
 GROUPS_ICON = 'OUTLINER_OB_GROUP_INSTANCE'
 
@@ -95,16 +95,23 @@ class CollectionExporter(bpy.types.Operator):
         collections.find_layer_collection_with_name(collection.name).exclude = False
 
         collections.select_objects_of_collection_with_name(collection.name)
+
+        objects.unselect_none_solid()
         
+        if not bpy.context.selected_objects:
+            return
+
         # duplicate selected objects
         bpy.ops.object.duplicate()
 
         # because issues with decalMachine
         self.resolve_atlas_uv()
-        
+                
         # apply modifiers
         modifiers.apply_modifiers(bpy.context.selected_objects)
         
+        objects.set_active(bpy.context.selected_objects[0])
+
         # join selected objects
         bpy.ops.object.join()
             
@@ -126,7 +133,7 @@ class CollectionExporter(bpy.types.Operator):
         print("==========================")
         print("Exporting: "+collection.name)
         print("==========================")
-        
+        collections.unhide_collection(collection)
         exportName = self.get_export_name_of_collection(collection)
 
         # join mesh to one
@@ -138,7 +145,8 @@ class CollectionExporter(bpy.types.Operator):
             self.rename_ucx_collection_objects(ucxCollectionName, exportName)
             collections.select_objects_of_collection_with_name(ucxCollectionName)
         mesh = bpy.context.scene.objects.get(exportName)
-        mesh.select_set(True)
+        objects.set_active(mesh)
+        # mesh.select_set(True)
         
         #export fbx
         export_path = os.path.join( get_source_path() , exportName + ".fbx")
