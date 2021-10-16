@@ -18,12 +18,17 @@ class CollectionExporter(bpy.types.Operator):
 
     clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
     child_bundle_export: BoolProperty(name="Bundle Children", description="Merges child collections seperate and exports them as one fbx (not joined together)", default=True)
+    smooth_normals_export: BoolProperty(name="Smooth Normals", description="Will execute smooth normals on export", default=False)
+
+    display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
 
     def execute(self, context):
         """Exports the Export Collections"""        
 
         exportable_collections = find_exportable_collections()
 
+        # change to object mode
+        objects.switch_to_object_mode()
         if not exportable_collections:
             self.report({'WARNING'}, "No exportable collections found!")
             return {'FINISHED'}
@@ -55,14 +60,21 @@ class CollectionExporter(bpy.types.Operator):
         row.prop(self, "clean_up_export")
 
         if self.has_any_export_collection_children():
-            row = box.row()
-            row.prop(self, "child_bundle_export")            
+            row.prop(self, "child_bundle_export")
+
+        row = box.row()
+        row.prop(self, "smooth_normals_export")
+
+        export_collections = find_exportable_collections()
 
         box2 = self.layout.box()
-        for collection in  find_exportable_collections():
-            box2.row().label(text=self.get_export_name_of_collection(collection), icon="EXPORT")
-            if collection.children and self.child_bundle_export:
-                box2.row().label(text=self.get_bundle_export_name_of_collection(collection), icon="EXPORT")                
+        box2.prop(self, "display_exportable", icon="TRIA_DOWN" if self.display_exportable else "TRIA_RIGHT", text="Output")
+
+        if self.display_exportable:
+            for collection in export_collections:
+                box2.row().label(text=self.get_export_name_of_collection(collection), icon="EXPORT")
+                if collection.children and self.child_bundle_export:
+                    box2.row().label(text=self.get_bundle_export_name_of_collection(collection), icon="EXPORT")       
 
 
     def rename_ucx_collection_objects(self, collectionName, exportName):
@@ -173,6 +185,10 @@ class CollectionExporter(bpy.types.Operator):
         if not bpy.context.selected_objects:
             return
         
+        # smooth normals
+        if self.smooth_normals_export:
+            objects.smooth_normals_of_selected()
+
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection)
         export_path = os.path.join( get_source_path() , parentExportName + BUNDLE_SUFFIX + ".fbx")
@@ -204,8 +220,11 @@ class CollectionExporter(bpy.types.Operator):
             collections.select_objects_of_collection_with_name(ucxCollectionName)
         mesh = bpy.context.scene.objects.get(exportName)
         objects.set_active(mesh)
-        # mesh.select_set(True)
         
+        # smooth normals
+        if self.smooth_normals_export:
+            objects.smooth_normals_of_selected()
+
         #export fbx
         export_path = os.path.join( get_source_path() , exportName + ".fbx")
         bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True)
