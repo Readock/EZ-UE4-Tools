@@ -7,6 +7,7 @@ from ..core import find_exportable_collections, get_export_collection_name, get_
 from ..utils import collections, modifiers, objects
 
 GROUPS_ICON = 'OUTLINER_OB_GROUP_INSTANCE'
+BUNDLE_SUFFIX = '_bundle'
 
 class CollectionExporter(bpy.types.Operator):
     """ Export collections """
@@ -15,7 +16,8 @@ class CollectionExporter(bpy.types.Operator):
     bl_label = "Export Collections"
     bl_description = "Export collections"
 
-    clean_up_export: BoolProperty(name="Clean-Up Export", default=True)
+    clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
+    child_bundle_export: BoolProperty(name="Bundle Children", description="Merges child collections seperate and exports them as one fbx (not joined together)", default=True)
 
     def execute(self, context):
         """Exports the Export Collections"""        
@@ -39,16 +41,28 @@ class CollectionExporter(bpy.types.Operator):
         if get_show_export_dialog():
             return context.window_manager.invoke_props_dialog(self)
     
+    def has_any_export_collection_children(self):
+        export_collections = find_exportable_collections()
+        for collection in export_collections:
+            if collection.children:
+                return True
+        return False
+
     def draw(self, context):
         """ Draw List of collections to export """
         box = self.layout.box()
         row = box.row()
         row.prop(self, "clean_up_export")
 
-        export_collections = find_exportable_collections()
+        if self.has_any_export_collection_children():
+            row = box.row()
+            row.prop(self, "child_bundle_export")            
+
         box2 = self.layout.box()
-        for collection in export_collections:
+        for collection in  find_exportable_collections():
             box2.row().label(text=self.get_export_name_of_collection(collection), icon="EXPORT")
+            if collection.children and self.child_bundle_export:
+                box2.row().label(text=self.get_bundle_export_name_of_collection(collection), icon="EXPORT")                
 
 
     def rename_ucx_collection_objects(self, collectionName, exportName):
@@ -124,6 +138,47 @@ class CollectionExporter(bpy.types.Operator):
     def get_export_name_of_collection(self, collection):
         return get_project_name() + "_" + collection.name.removeprefix(get_export_prefix())
 
+    def get_bundle_export_name_of_collection(self, collection):
+        return self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
+   
+    def set_up_export_collection_with_name(self, collectionName):
+        """ Creates the export collection or deletes all objects inside if it alredy exists """
+        # create Export Collection if not exist
+        if not collections.has_collection_with_name(collectionName):
+            collection = bpy.data.collections.new(collectionName)
+            bpy.context.scene.collection.children.link(collection)
+        bpy.ops.object.select_all(action='DESELECT')
+        
+        # make shure the collection is included
+        collections.find_layer_collection_with_name(collectionName).exclude = False
+
+        #select all objects in Export and delete them
+        collections.select_objects_of_collection_with_name(collectionName)
+        bpy.ops.object.delete()
+
+    def export_collection_children_as_bundle(self, collection):
+        if not collection.children:
+            return
+        bpy.ops.object.select_all(action='DESELECT')
+        # join individual collections
+        for childCollection in collection.children:
+            self.join_collection(childCollection, self.get_export_name_of_collection(childCollection))
+        # select joined
+        for childCollection in collection.children:
+            objects.set_active_with_name(self.get_export_name_of_collection(childCollection))
+        # move to export collection
+        for selected_object in bpy.context.selected_objects:
+            collections.move_to_collection_with_name(selected_object, get_export_collection_name())
+        
+        if not bpy.context.selected_objects:
+            return
+        
+        #export as bundle
+        parentExportName = self.get_export_name_of_collection(collection)
+        export_path = os.path.join( get_source_path() , parentExportName + BUNDLE_SUFFIX + ".fbx")
+        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True)
+        bpy.ops.object.select_all(action='DESELECT')
+
     def export_collection(self, collection):
         """ Export objects of a collection to a FBX """
         if not collection:
@@ -135,6 +190,9 @@ class CollectionExporter(bpy.types.Operator):
         print("==========================")
         collections.unhide_collection(collection)
         exportName = self.get_export_name_of_collection(collection)
+        
+        if self.child_bundle_export:
+            self.export_collection_children_as_bundle(collection)            
 
         # join mesh to one
         self.join_collection(collection, exportName)
@@ -151,11 +209,12 @@ class CollectionExporter(bpy.types.Operator):
         #export fbx
         export_path = os.path.join( get_source_path() , exportName + ".fbx")
         bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True)
-        
+    
+    
         
     # Exports all exportCollections to a fbx file
     def export_collections(self, exportCollections):
-        collections.set_up_export_collection_with_name(get_export_collection_name())
+        self.set_up_export_collection_with_name(get_export_collection_name())
         for export in exportCollections:
             self.export_collection(export)
         if self.clean_up_export:

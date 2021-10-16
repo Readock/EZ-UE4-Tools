@@ -23,7 +23,6 @@ def find_layer_collection_with_name(name):
     root = bpy.context.view_layer.layer_collection
     return recur_layer_collection_with_name(root, name)
 
-
 def select_objects_of_collection(collection):
     """ Select all Objects of a collection """
     bpy.ops.object.select_all(action='DESELECT')
@@ -46,21 +45,6 @@ def move_to_collection_with_name(object, collectionName):
     for collection in object.users_collection:
         collection.objects.unlink(object)
     bpy.data.collections[collectionName].objects.link(object)
-
-def set_up_export_collection_with_name(collectionName):
-    """ Creates the export collection or deletes all objects inside if it alredy exists """
-    # create Export Collection if not exist
-    if not has_collection_with_name(collectionName):
-        collection = bpy.data.collections.new(collectionName)
-        bpy.context.scene.collection.children.link(collection)
-    bpy.ops.object.select_all(action='DESELECT')
-    
-    # make shure the collection is included
-    find_layer_collection_with_name(collectionName).exclude = False
-
-    #select all objects in Export and delete them
-    select_objects_of_collection_with_name(collectionName)
-    bpy.ops.object.delete()
 
 def delete_collection(collection):
     """ Deletes a collection with the objects in it """
