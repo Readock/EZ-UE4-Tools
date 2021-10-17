@@ -190,9 +190,8 @@ class CollectionExporter(bpy.types.Operator):
             objects.smooth_normals_of_selected()
 
         #export as bundle
-        parentExportName = self.get_export_name_of_collection(collection)
-        export_path = os.path.join( get_source_path() , parentExportName + BUNDLE_SUFFIX + ".fbx")
-        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True)
+        parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
+        objects.export_selected_as_fbx(parentExportName)
         bpy.ops.object.select_all(action='DESELECT')
 
     def export_collection(self, collection):
@@ -226,8 +225,7 @@ class CollectionExporter(bpy.types.Operator):
             objects.smooth_normals_of_selected()
 
         #export fbx
-        export_path = os.path.join( get_source_path() , exportName + ".fbx")
-        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True)
+        objects.export_selected_as_fbx(exportName)
     
     
         

@@ -1,4 +1,6 @@
 import bpy
+import os
+from ..core import get_source_path
 
 
 def set_active(obj):
@@ -32,3 +34,7 @@ def unselect_none_solid():
 def switch_to_object_mode():
     if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
+
+def export_selected_as_fbx(export_name):    
+    export_path = os.path.join( get_source_path() , export_name + ".fbx")
+    bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="FACE")
