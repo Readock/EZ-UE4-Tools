@@ -5,14 +5,16 @@ for it, and then import it in this file and add it to the __operators__ list.
 """
 
 
-from . import (
-    documentation,
-    collection_exporter,
-)
+from .documentation import AddonDocumentation
+from .open_source_path import OpenSourcePath
+from .collection_exporter import CollectionExporter
+from .animation_export import AnimationExporter
 
 
 # List of operators to load by default.
 REGISTER_CLASSES = (
-    documentation,
-    collection_exporter,
+    AddonDocumentation,
+    OpenSourcePath,
+    AnimationExporter,
+    CollectionExporter,
 )

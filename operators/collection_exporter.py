@@ -18,7 +18,6 @@ class CollectionExporter(bpy.types.Operator):
 
     clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
     child_bundle_export: BoolProperty(name="Bundle Children", description="Merges child collections seperate and exports them as one fbx (not joined together)", default=True)
-    smooth_normals_export: BoolProperty(name="Smooth Normals", description="Will execute smooth normals on export", default=False)
 
     display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
 
@@ -45,6 +44,7 @@ class CollectionExporter(bpy.types.Operator):
     def invoke(self, context, event):
         if get_show_export_dialog():
             return context.window_manager.invoke_props_dialog(self)
+        return self.execute(context)
     
     def has_any_export_collection_children(self):
         export_collections = find_exportable_collections()
@@ -61,9 +61,6 @@ class CollectionExporter(bpy.types.Operator):
 
         if self.has_any_export_collection_children():
             row.prop(self, "child_bundle_export")
-
-        row = box.row()
-        row.prop(self, "smooth_normals_export")
 
         export_collections = find_exportable_collections()
 
@@ -184,10 +181,6 @@ class CollectionExporter(bpy.types.Operator):
         
         if not bpy.context.selected_objects:
             return
-        
-        # smooth normals
-        if self.smooth_normals_export:
-            objects.smooth_normals_of_selected()
 
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
@@ -220,17 +213,18 @@ class CollectionExporter(bpy.types.Operator):
         mesh = bpy.context.scene.objects.get(exportName)
         objects.set_active(mesh)
         
-        # smooth normals
-        if self.smooth_normals_export:
-            objects.smooth_normals_of_selected()
-
         #export fbx
-        objects.export_selected_as_fbx(exportName)
+        self.export_selected_as_fbx(exportName)
     
     
+    def export_selected_as_fbx(self, export_name):    
+        """ Exports selected objects as fbx """
+        export_path = os.path.join( get_source_path() , export_name + ".fbx")
+        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="FACE")
+
         
-    # Exports all exportCollections to a fbx file
     def export_collections(self, exportCollections):
+        """Exports all exportCollections to a fbx file"""
         self.set_up_export_collection_with_name(get_export_collection_name())
         for export in exportCollections:
             self.export_collection(export)
@@ -246,11 +240,14 @@ class CollectionExporter(bpy.types.Operator):
     def poll(cls, context):
         """Only allows this operator to execute if there is a valid selection."""
         return  find_exportable_collections()
-
+    
 def menu_draw(self, context):
     """Create the menu item."""
-    self.layout.operator(CollectionExporter.bl_idname, icon = GROUPS_ICON)
-
+    export_objects = find_exportable_collections()
+    menu_text="No Export Collections in scene!"
+    if export_objects:
+        menu_text = f"Export Collections ({len(export_objects)})"
+    self.layout.operator(CollectionExporter.bl_idname, text=menu_text, icon=GROUPS_ICON)
 
 REGISTER_CLASSES = (
     CollectionExporter,

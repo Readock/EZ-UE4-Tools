@@ -3,7 +3,7 @@
 import bpy
 from .ui import menu_draw
 from .. import operators
-from . import find_exportable_collections
+from . import find_exportable_armatures, find_exportable_collections
 
 
 SEPARATOR = 'SEPARATOR'
@@ -58,8 +58,9 @@ def register():
     ezue4_menu = MenuBuilder(bpy.types.TOPBAR_MT_EZUE4)
     ezue4_menu.add_items(
         # operators.documentation,
-        CollectionsInfoPanel,
+        operators.open_source_path,
         SEPARATOR,
+        operators.animation_export,
         operators.collection_exporter,
     )
 
@@ -93,3 +94,19 @@ class CollectionsInfoPanel(bpy.types.Panel):
             return
 
         self.layout.label(text=f"{len(export_collections)} Export Collections in scene")
+
+
+
+class ArmatureInfoPanel(bpy.types.Panel):
+    bl_idname = "export_armature_info_panel"
+    bl_label = "Export Armature Info Panel"
+
+    def menu_draw(self, context):
+        """Draw the export panel."""        
+        export_objects = find_exportable_armatures()
+
+        if not export_objects:
+            self.layout.label(text="No Export Armatures in scene!")
+            return
+
+        self.layout.label(text=f"{len(export_objects)} Export Armatures in scene")

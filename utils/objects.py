@@ -1,6 +1,5 @@
 import bpy
 import os
-from ..core import get_source_path
 
 
 def set_active(obj):
@@ -32,9 +31,42 @@ def unselect_none_solid():
                 obj.select_set(False)
 
 def switch_to_object_mode():
+    """ Switch mode to object mode """
     if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
 
-def export_selected_as_fbx(export_name):    
-    export_path = os.path.join( get_source_path() , export_name + ".fbx")
-    bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="FACE")
+def get_direct_children_of(obj):
+    """ Get all direct childs of a object """
+    if not obj:
+        return []
+    child_objects = []
+    for childObj in bpy.data.objects:
+        if childObj.library is None:
+            pare = childObj.parent
+            if pare is not None:
+                if pare.name == obj.name:
+                    child_objects.append(childObj)
+    return child_objects
+
+def get_children_of(obj):
+    """ Get all (recrusive) childs of an object """
+    child_objects = []
+    if not obj:
+        return child_objects
+    def tryAppend(obj):
+        if obj.name in bpy.context.scene.objects:
+            child_objects.append(obj)
+
+    for newobj in get_direct_children_of(obj):
+        for childs in get_children_of(newobj):
+            tryAppend(childs)
+        tryAppend(newobj)
+    return child_objects
+
+def find_all_of_type(object_type):
+    """ Finds all the objects of an type (eg. 'MESH' or 'ARMATURE') """
+    objects = []
+    for obj in bpy.data.objects:
+        if obj.type == object_type:
+            objects.append(obj)
+    return objects

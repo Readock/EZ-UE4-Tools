@@ -7,6 +7,7 @@ from os.path import normpath
 import sys
 import bpy
 from pathlib import Path
+from ..utils import collections, modifiers, objects
 
 
 def get_addon_path():
@@ -48,17 +49,25 @@ def get_export_collection_name():
     """Returns the Addon's export collections name"""
     return get_preferences().export_collection_name
     
-    
 def get_show_export_dialog():
     """Returns the Addon's Project source path."""
     return get_preferences().show_export_dialog
 
 def find_exportable_collections():
+    """Finds all the collections marked for export"""
     export_collections = []
     for collection in bpy.data.collections:
         if collection.name.startswith(get_export_prefix()):
             export_collections.append(collection)
     return export_collections
+
+def find_exportable_armatures():
+    """Finds all the collections marked for export"""
+    export_armatures = []
+    for armature in objects.find_all_of_type('ARMATURE'):
+        if armature.name.startswith(get_export_prefix()):
+            export_armatures.append(armature)
+    return export_armatures
 
 def reload_addon():
     """Reloads the Addon and all of its modules."""

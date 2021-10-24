@@ -36,7 +36,7 @@ class EZUE4AddonPreferences(AddonPreferences):
     
     export_prefix: StringProperty(
         name="Export prefix",
-        description="Prefix name to detect exportable collections",
+        description="Prefix name to detect exportable collections and armatures",
         default= ".",
         subtype='NONE'
     )
