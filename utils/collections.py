@@ -69,3 +69,7 @@ def unhide_collection(collection):
     for obj in collection.all_objects:
         if obj.type == 'MESH':
             obj.hide_set(False)
+
+def is_linked(collection):
+    """If the collection is linked form another blend file"""
+    return collection.library

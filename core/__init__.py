@@ -57,7 +57,7 @@ def find_exportable_collections():
     """Finds all the collections marked for export"""
     export_collections = []
     for collection in bpy.data.collections:
-        if collection.name.startswith(get_export_prefix()):
+        if collection.name.startswith(get_export_prefix()) and not collections.is_linked(collection):
             export_collections.append(collection)
     return export_collections
 
