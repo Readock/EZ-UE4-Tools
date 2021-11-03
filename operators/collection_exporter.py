@@ -184,7 +184,7 @@ class CollectionExporter(bpy.types.Operator):
 
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
-        objects.export_selected_as_fbx(parentExportName)
+        self.export_selected_as_fbx(parentExportName)
         bpy.ops.object.select_all(action='DESELECT')
 
     def export_collection(self, collection):
