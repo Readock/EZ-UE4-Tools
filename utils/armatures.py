@@ -3,7 +3,6 @@ import bpy
 def get_actions(armature):
     if not armature or not armature.animation_data or not armature.data:
         return []
-    #actions, _ = armature.data.jk_adc.get_actions(armature, False)
     actions = [act for act in bpy.data.actions if is_armature_using_action(armature, act)]
     return actions
 
