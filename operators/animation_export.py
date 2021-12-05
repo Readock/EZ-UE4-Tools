@@ -127,7 +127,7 @@ class AnimationExporter(bpy.types.Operator):
         """Export all actions as seperate fbx file"""
         armatures.create_animation_data(armature)
         actions = armatures.get_actions(armature)
-        for action in actions.keys():
+        for action in actions:
             # set the scenes frame start/end from the actions frame range...
             bpy.context.scene.frame_start, bpy.context.scene.frame_end = int(round(action.frame_range[0], 0)), int(round(action.frame_range[1], 0))
             
