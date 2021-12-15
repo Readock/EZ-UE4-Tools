@@ -161,7 +161,7 @@ class AnimationExporter(bpy.types.Operator):
             global_scale= 1.0,
             use_armature_deform_only=True,
             bake_anim=False,
-            mesh_smooth_type="FACE",
+            mesh_smooth_type="EDGE",
             use_selection=True)
 
     def export_action_as_fbx(self, name):
@@ -180,7 +180,7 @@ class AnimationExporter(bpy.types.Operator):
             bake_anim_use_nla_strips=False,
             bake_anim_use_all_actions=False,
             bake_anim_force_startend_keying=True,
-            mesh_smooth_type="FACE",
+            mesh_smooth_type="EDGE",
             batch_mode='OFF',
             use_selection=True)
 

@@ -220,7 +220,7 @@ class CollectionExporter(bpy.types.Operator):
     def export_selected_as_fbx(self, export_name):    
         """ Exports selected objects as fbx """
         export_path = os.path.join( get_source_path() , export_name + ".fbx")
-        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="FACE")
+        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="EDGE")
 
         
     def export_collections(self, exportCollections):
