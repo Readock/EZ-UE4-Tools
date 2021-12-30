@@ -3,7 +3,7 @@ import os
 import fnmatch
 from bpy.props import BoolProperty
 from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog
-from ..utils import collections, modifiers, objects, armatures
+from ..utils import collections, modifiers, objects, armatures, export
 
 ACTIONS_SUFFIX = "_Animations"
 
@@ -134,9 +134,8 @@ class AnimationExporter(bpy.types.Operator):
             armatures.clear_pose_transform(armature)
             # setting the action to be the active one...
             armature.animation_data.action = action
-            # selecting and exporting only the deformer...
-            bpy.ops.object.select_all(action='DESELECT')
-            
+
+            objects.deselect()
             self.select_armature_with_mesh(armature)
 
             armature.data.pose_position = 'POSE'            
@@ -144,11 +143,11 @@ class AnimationExporter(bpy.types.Operator):
     
     def export_mesh(self, armature):
         """Export the armature and mesh"""
-        bpy.ops.object.select_all(action='DESELECT')
+        objects.deselect()
         self.select_armature_with_mesh(armature)
 
         self.export_mesh_as_fbx(self.get_export_name_of_armature(armature))
-        bpy.ops.object.select_all(action='DESELECT')
+        objects.deselect()
 
     def export_mesh_as_fbx(self, name):
         """Export fbx"""
@@ -156,20 +155,27 @@ class AnimationExporter(bpy.types.Operator):
         bpy.ops.export_scene.fbx(
             filepath=bpy.path.abspath(export_path),
             object_types={'ARMATURE', 'EMPTY', 'MESH'},
+            apply_scale_options='FBX_SCALE_ALL', 
+            apply_unit_scale= True,
+            bake_space_transform=False,
             axis_forward='X',
             axis_up ='Z',
             global_scale= 1.0,
             use_armature_deform_only=True,
+            use_mesh_edges=False,
             bake_anim=False,
             mesh_smooth_type="EDGE",
             use_selection=True)
 
     def export_action_as_fbx(self, name):
-        """Export fbx"""
+        """Export fbx"""        
         export_path = os.path.join( get_source_path() , name + ".fbx")
         bpy.ops.export_scene.fbx(
             filepath=bpy.path.abspath(export_path),
             object_types={'ARMATURE', 'EMPTY'},
+            apply_scale_options='FBX_SCALE_ALL', 
+            apply_unit_scale= True,
+            bake_space_transform=False,
             axis_forward='X',
             axis_up ='Z',
             global_scale= 1.0,
@@ -181,6 +187,7 @@ class AnimationExporter(bpy.types.Operator):
             bake_anim_use_all_actions=False,
             bake_anim_force_startend_keying=True,
             mesh_smooth_type="EDGE",
+            use_mesh_edges=False,
             batch_mode='OFF',
             use_selection=True)
 
@@ -189,12 +196,31 @@ class AnimationExporter(bpy.types.Operator):
         print("==========================")
         print("Exporting Armature: "+armature.name)
         print("==========================")
-
+        
+        self.scale_armature_for_export(armature)
+        
         if self.should_export_actions:
             self.batch_export_actions(armature)
         if self.should_export_mesh:
             self.export_mesh(armature)
-        
+
+        self.revert_scale_armature_for_export(armature)
+    
+    def scale_armature_for_export(self, armature):
+        """Apply armature scale for ue4 export"""
+        objects.deselect()
+        export_scale_factor = export.units_blender_to_fbx_factor()
+        objects.set_active(armature)
+        objects.unit_scale_selected(export_scale_factor)
+        objects.deselect()
+
+    def revert_scale_armature_for_export(self, armature):
+        """Revert armature scale after ue4 export"""
+        objects.deselect()
+        export_scale_factor = export.units_blender_to_fbx_factor()
+        objects.set_active(armature)
+        objects.unit_scale_selected(1.0/export_scale_factor)
+        objects.deselect()
 
     @classmethod
     def poll(cls, context):

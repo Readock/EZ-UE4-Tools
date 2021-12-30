@@ -8,6 +8,10 @@ def set_active(obj):
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
 
+def deselect():
+    """ Deselects all active elements """
+    bpy.ops.object.select_all(action='DESELECT')
+
 def find_with_name(name):
     return bpy.context.scene.objects[name]
 
@@ -70,3 +74,11 @@ def find_all_of_type(object_type):
         if obj.type == object_type:
             objects.append(obj)
     return objects
+
+
+def unit_scale_selected(unit_scaling):
+    """Scales selected objects to another unit scale"""
+    for obj in bpy.context.selected_objects:
+        # multiply location to get offsets right
+        obj.location = [obj.location.x * unit_scaling, obj.location.y * unit_scaling, obj.location.z * unit_scaling]
+        obj.scale = [obj.scale.x * unit_scaling, obj.scale.y * unit_scaling, obj.scale.z * unit_scaling]
