@@ -19,6 +19,7 @@ class CollectionExporter(bpy.types.Operator):
     bl_description = "Export collections"
 
     fix_scale_on_export: BoolProperty(name="Fix Scale", description="Scale x100 to fix unreal scaling issues", default=True)
+    auto_uv_unwrap_export: BoolProperty(name="Auto UV Unwrap", description="Automated unwrapping after merging objects", default=False)
     clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
     child_bundle_export: BoolProperty(name="Bundle Children", description="Merges child collections seperate and exports them as one fbx (not joined together)", default=True)
 
@@ -90,8 +91,10 @@ class CollectionExporter(bpy.types.Operator):
         row.prop(self, "should_export_ucx", text="UCX", toggle=True, icon="MESH_CUBE")
 
         row = box.row()
+        row.prop(self, "fix_scale_on_export")
+        row.prop(self, "auto_uv_unwrap_export")
+        row = box.row()
         row.prop(self, "clean_up_export")
-        row.prop(self, "apply_transform_before_export")
 
         if self.has_any_export_collection_children():
             row.prop(self, "child_bundle_export")
@@ -184,9 +187,6 @@ class CollectionExporter(bpy.types.Operator):
         collections.move_to_collection_with_name(bpy.context.selected_objects[0], get_export_collection_name())
         collections.find_layer_collection_with_name(collection.name).exclude = was_excluded
 
-        if self.apply_transform_before_export:
-            objects.apply_transform_to_selected()
-
     def set_active_object_of_selection(self):
         """Selects the first or marked object of the selected objects as active"""
         if not bpy.context.selected_objects:
@@ -223,13 +223,22 @@ class CollectionExporter(bpy.types.Operator):
     def export_collection_children_as_bundle(self, collection):
         if not collection.children:
             return
-        bpy.ops.object.select_all(action='DESELECT')
+        objects.deselect()
         # join individual collections
         for childCollection in collection.children:
             self.join_collection(childCollection, self.get_export_name_of_collection(childCollection))
+
+        # auto uv
+        if self.auto_uv_unwrap_export:
+            for childCollection in collection.children:
+                objects.deselect()
+                objects.set_active_with_name(self.get_export_name_of_collection(childCollection))
+                objects.auto_uv_selected()
+
         # select joined
         for childCollection in collection.children:
             objects.set_active_with_name(self.get_export_name_of_collection(childCollection))
+
         # move to export collection
         for selected_object in bpy.context.selected_objects:
             collections.move_to_collection_with_name(selected_object, get_export_collection_name())
@@ -240,7 +249,7 @@ class CollectionExporter(bpy.types.Operator):
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
         self.export_selected_as_fbx(parentExportName)
-        bpy.ops.object.select_all(action='DESELECT')
+        objects.deselect()
 
     def export_collection(self, collection):
         """ Export objects of a collection to a FBX """
@@ -260,18 +269,24 @@ class CollectionExporter(bpy.types.Operator):
         # join mesh to one
         self.join_collection(collection, exportName)
 
-        # select objects to export
+        # select joined mesh
+        mesh = bpy.context.scene.objects.get(exportName)
+        objects.set_active(mesh)
+
+        # auto UV
+        if self.auto_uv_unwrap_export:
+            objects.auto_uv_selected()
+
+        # prepare and select ucx (colliders)
         if self.should_export_ucx:
             ucx_collection = self.get_collections_ucx(collection)
             if ucx_collection:
                 self.rename_ucx_collection_objects(ucx_collection.name, exportName)
                 collections.select_objects_of_collection(ucx_collection)
-        mesh = bpy.context.scene.objects.get(exportName)
-        objects.set_active(mesh)
         
         #export fbx
         self.export_selected_as_fbx(exportName)
-    
+
     def is_collection_lp(self, collection):
         """ If a collection is marked as low poly """
         return re.search(get_lowpoly_regex(), collection.name)

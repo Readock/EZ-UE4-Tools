@@ -42,6 +42,11 @@ def switch_to_object_mode():
     if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
 
+def switch_to_edit_mode():
+    """ Switch mode to object mode """
+    if bpy.context.active_object and bpy.context.active_object.mode != 'EDIT':
+        bpy.ops.object.mode_set(mode='EDIT')
+
 def get_direct_children_of(obj):
     """ Get all direct childs of a object """
     if not obj:
@@ -94,3 +99,16 @@ def apply_transform_to_selected():
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True, properties=True)
     if current_active:
         set_active(current_active)
+
+def auto_uv_selected():
+    """ Unwraps selected objects """
+    if not bpy.context.active_object:
+        return
+    og_mode = bpy.context.active_object.mode
+    switch_to_edit_mode()
+
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project( island_margin=0.01)
+    
+    # switch back
+    bpy.ops.object.mode_set(mode=og_mode)
