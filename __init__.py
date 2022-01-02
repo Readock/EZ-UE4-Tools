@@ -7,7 +7,7 @@ bl_info = {
         "name": "EZ-UE4 Tools",
         "description": "A tool for exporting fbx for unreal engine 4",
         "author": "Felix",
-        "version": (0, 1),
+        "version": (0, 2),
         "blender": (2, 93, 0),
         "location": "EZ-UE4 Menu",
         "warning": "",

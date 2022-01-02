@@ -45,6 +45,22 @@ def get_export_prefix():
     """Returns the Addon's export prefix for collections."""
     return get_preferences().export_prefix
 
+def get_export_priority_object_prefix():
+    """Returns the Addon's export prefix for collections."""
+    return get_preferences().export_priority_object_prefix
+
+def get_collision_prefix():
+    """Returns the Addon's collision prefix for collections."""
+    return get_preferences().collision_prefix
+
+def get_lowpoly_regex():
+    """Returns the Addon's lp regex for collections."""
+    return get_preferences().lowpoly_regex
+
+def get_highpoly_regex():
+    """Returns the Addon's hp regex for collections."""
+    return get_preferences().highpoly_regex
+
 def get_export_collection_name():
     """Returns the Addon's export collections name"""
     return get_preferences().export_collection_name

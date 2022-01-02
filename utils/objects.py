@@ -8,6 +8,9 @@ def set_active(obj):
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
 
+def get_active():
+    return bpy.context.view_layer.objects.active
+
 def deselect():
     """ Deselects all active elements """
     bpy.ops.object.select_all(action='DESELECT')
@@ -82,3 +85,12 @@ def unit_scale_selected(unit_scaling):
         # multiply location to get offsets right
         obj.location = [obj.location.x * unit_scaling, obj.location.y * unit_scaling, obj.location.z * unit_scaling]
         obj.scale = [obj.scale.x * unit_scaling, obj.scale.y * unit_scaling, obj.scale.z * unit_scaling]
+
+def apply_transform_to_selected():
+    """Apply tranform to selected objects"""
+    current_active = get_active()
+    for obj in bpy.context.selected_objects:
+        set_active(obj)
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True, properties=True)
+    if current_active:
+        set_active(current_active)

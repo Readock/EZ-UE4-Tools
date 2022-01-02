@@ -40,6 +40,34 @@ class EZUE4AddonPreferences(AddonPreferences):
         default= ".",
         subtype='NONE'
     )
+
+    export_priority_object_prefix: StringProperty(
+        name="First priority object prefix",
+        description="Object prefix to set this object as active before merging (eg. to use its origin or shading)",
+        default= ".",
+        subtype='NONE'
+    )
+    
+    collision_prefix: StringProperty(
+        name="Collision (UCX) prefix",
+        description="Prefix to to detect the collision of exportable collections",
+        default= "UCX_",
+        subtype='NONE'
+    )
+    
+    lowpoly_regex: StringProperty(
+        name="LowPoly (LP) regex",
+        description="Regex to detect low poly",
+        default= "(?i)_lp$",
+        subtype='NONE'
+    )
+    
+    highpoly_regex: StringProperty(
+        name="HighPoly (HP) regex",
+        description="Regex to detect high poly",
+        default= "(?i)_hp$",
+        subtype='NONE'
+    )
     
     export_collection_name: StringProperty(
         name="Export collection",
@@ -60,6 +88,10 @@ class EZUE4AddonPreferences(AddonPreferences):
         """Draws the preferences."""
         self.layout.prop(self, 'show_export_dialog', expand=True)
         self.layout.prop(self, 'export_prefix', expand=True)
+        self.layout.prop(self, 'export_priority_object_prefix', expand=True)
+        self.layout.prop(self, 'collision_regex', expand=True)
+        self.layout.prop(self, 'lowpoly_regex', expand=True)
+        self.layout.prop(self, 'highpoly_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
         self.layout.prop(self, 'source_path', expand=True)
 
