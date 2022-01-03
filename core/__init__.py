@@ -69,11 +69,15 @@ def get_show_export_dialog():
     """Returns the Addon's Project source path."""
     return get_preferences().show_export_dialog
 
+def get_export_respect_scene():
+    """Export current scene only."""
+    return get_preferences().export_respect_scene
+
 def find_exportable_collections():
     """Finds all the collections marked for export"""
     export_collections = []
     for collection in bpy.data.collections:
-        if collection.name.startswith(get_export_prefix()) and not collections.is_linked(collection):
+        if collection.name.startswith(get_export_prefix()) and not collections.is_linked(collection) and (not get_export_respect_scene() or collections.is_in_current_Scene(collection)):
             export_collections.append(collection)
     return export_collections
 
@@ -81,7 +85,7 @@ def find_exportable_armatures():
     """Finds all the collections marked for export"""
     export_armatures = []
     for armature in objects.find_all_of_type('ARMATURE'):
-        if armature.name.startswith(get_export_prefix()):
+        if armature.name.startswith(get_export_prefix()) and (not get_export_respect_scene() or objects.is_in_current_Scene(armature)):
             export_armatures.append(armature)
     return export_armatures
 

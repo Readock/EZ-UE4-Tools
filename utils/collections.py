@@ -73,3 +73,20 @@ def unhide_collection(collection):
 def is_linked(collection):
     """If the collection is linked form another blend file"""
     return collection.library
+
+def recur_is_children_of(source, root):
+    """Checks if 'source' is a child collection of 'root'"""
+    if not root.children:
+        return False
+    for collection in root.children:
+        if collection.name == source.name:
+            return True
+    result = False
+    for collection in root.children:
+        result = result or recur_is_children_of(source, collection)
+    return 
+
+def is_in_current_Scene(collection):
+    """If collection is in the current scene"""
+    current_scene = bpy.context.scene
+    return recur_is_children_of(collection, current_scene.collection)

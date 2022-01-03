@@ -112,3 +112,7 @@ def auto_uv_selected():
     
     # switch back
     bpy.ops.object.mode_set(mode=og_mode)
+
+def is_in_current_Scene(object):    
+    current_scene = bpy.context.scene 
+    return current_scene in object.users_scene

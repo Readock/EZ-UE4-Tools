@@ -69,6 +69,12 @@ class EZUE4AddonPreferences(AddonPreferences):
         subtype='NONE'
     )
     
+    export_respect_scene: BoolProperty(
+        name="Only Export current scene",
+        description="Only the current scene will be exported (if false all scenes are used)",
+        default= True,
+    )
+    
     export_collection_name: StringProperty(
         name="Export collection",
         description="Name of the collection to be used for exporting",
@@ -93,6 +99,7 @@ class EZUE4AddonPreferences(AddonPreferences):
         self.layout.prop(self, 'lowpoly_regex', expand=True)
         self.layout.prop(self, 'highpoly_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
+        self.layout.prop(self, 'export_respect_scene', expand=True)
         self.layout.prop(self, 'source_path', expand=True)
 
     def set_items(self, items):
