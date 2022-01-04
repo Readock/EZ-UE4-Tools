@@ -317,13 +317,19 @@ class CollectionExporter(bpy.types.Operator):
             # scale to fix ue4 scaling issues
             export_scale_factor = export.units_blender_to_fbx_factor()
             objects.unit_scale_selected(export_scale_factor)
-            objects.apply_transform_to_selected()
+            objects.apply_scale_and_rotation_to_selected()
         export_path = os.path.join( get_source_path() , export_name + ".fbx")
-        bpy.ops.export_scene.fbx(filepath=export_path, use_selection=True, mesh_smooth_type="EDGE")
+        bpy.ops.export_scene.fbx(filepath=export_path, 
+            use_selection=True,            
+            apply_scale_options='FBX_SCALE_ALL', 
+            apply_unit_scale= True,
+            bake_space_transform=False,
+            global_scale= 1.0,
+            mesh_smooth_type="EDGE")
         if self.fix_scale_on_export:
             # revert the scaling (for better debugging and ucx was scaled as well)
             objects.unit_scale_selected(1.0/export_scale_factor)
-            objects.apply_transform_to_selected()
+            objects.apply_scale_and_rotation_to_selected()
         
     def export_collections(self, exportCollections):
         """Exports all exportCollections to a fbx file"""

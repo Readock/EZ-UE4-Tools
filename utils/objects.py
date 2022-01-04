@@ -100,6 +100,15 @@ def apply_transform_to_selected():
     if current_active:
         set_active(current_active)
 
+def apply_scale_and_rotation_to_selected():
+    """Apply tranform to selected objects"""
+    current_active = get_active()
+    for obj in bpy.context.selected_objects:
+        set_active(obj)
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True, properties=True)
+    if current_active:
+        set_active(current_active)
+
 def auto_uv_selected():
     """ Unwraps selected objects """
     if not bpy.context.active_object:
@@ -116,3 +125,7 @@ def auto_uv_selected():
 def is_in_current_Scene(object):    
     current_scene = bpy.context.scene 
     return current_scene in object.users_scene
+
+def is_linked(collection):
+    """If the collection is linked form another blend file"""
+    return collection.library

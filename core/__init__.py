@@ -95,14 +95,6 @@ def reload_addon():
     pref_items = get_preferences().items()
     bpy.ops.preferences.addon_disable(module=get_addon_name())
 
-    # reloadable = [mod for mod in sys.modules.values() if getattr(mod, '__name__', "").startswith(_addon_name)]
-    # for module in reloadable:
-    #    try:
-    #        print(f"\tReloading {module.__name__}...")
-    #        reload(module)
-    #    except Exception as ex: 
-    #        print(f"Error: Failed to reload module '{module.__name__}', reason: {ex}")
-
     bpy.ops.preferences.addon_enable(module=get_addon_name())
 
     # Reset the previous preference items onto the reloaded preferences
