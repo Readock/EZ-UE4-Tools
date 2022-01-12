@@ -278,14 +278,28 @@ class CollectionExporter(bpy.types.Operator):
             objects.auto_uv_selected()
 
         # prepare and select ucx (colliders)
+        has_ucx = False
+        was_ucx_excluded = False
         if self.should_export_ucx:
             ucx_collection = self.get_collections_ucx(collection)
-            if ucx_collection:
+            if ucx_collection:                
+                has_ucx = True
+                # makes shure the collection is included (else we cant select objects of this collection)
+                was_ucx_excluded = collections.find_layer_collection_with_name(ucx_collection.name).exclude
+                collections.find_layer_collection_with_name(ucx_collection.name).exclude = False
+
                 self.rename_ucx_collection_objects(ucx_collection.name, exportName)
                 collections.select_objects_of_collection(ucx_collection)
         
+        # set joined mesh as active
+        objects.set_active(mesh)
+
         #export fbx
         self.export_selected_as_fbx(exportName)
+
+        # reset ucx exclude state
+        if has_ucx:
+            collections.find_layer_collection_with_name(ucx_collection.name).exclude = was_ucx_excluded
 
     def is_collection_lp(self, collection):
         """ If a collection is marked as low poly """
