@@ -5,7 +5,7 @@ import os
 import re
 from bpy.props import BoolProperty
 from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, get_export_priority_object_prefix
-from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex
+from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex, get_collection_export_name_template
 from ..utils import collections, modifiers, objects, export
 
 GROUPS_ICON = 'OUTLINER_OB_GROUP_INSTANCE'
@@ -199,7 +199,11 @@ class CollectionExporter(bpy.types.Operator):
 
     def get_export_name_of_collection(self, collection):
         """Gets the export name of an collection"""
-        return get_project_name() + "_" + collection.name.removeprefix(get_export_prefix())
+        name = get_collection_export_name_template()
+        collection_name = collection.name.removeprefix(get_export_prefix())
+        name = name.replace("$(collection)", collection_name)
+        name = name.replace("$(file)", get_project_name())
+        return name
 
     def get_bundle_export_name_of_collection(self, collection):
         """Gets the bundle export name of an collection"""

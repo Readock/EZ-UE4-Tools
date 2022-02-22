@@ -73,6 +73,14 @@ def get_export_respect_scene():
     """Export current scene only."""
     return get_preferences().export_respect_scene
 
+def get_collection_export_name_template():
+    """Export current scene only."""
+    return get_preferences().collection_export_name_template
+
+def get_armature_export_name_template():
+    """Export current scene only."""
+    return get_preferences().armature_export_name_template
+
 def find_exportable_collections():
     """Finds all the collections marked for export"""
     export_collections = []

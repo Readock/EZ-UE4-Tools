@@ -34,6 +34,7 @@ def menu_draw(self, context):
     """Create the menu item."""
     self.layout.operator(OpenSourcePath.bl_idname, icon="FILE_FOLDER")
 # find icons here https://gist.github.com/eliemichel/251731e6cc711340dfefe90fe7e38ac9
+# or here https://media.blenderartists.org/uploads/default/original/4X/d/0/a/d0a3a276bee9db75153f7a67613f307654a7a063.png
 
 REGISTER_CLASSES = (
     OpenSourcePath,

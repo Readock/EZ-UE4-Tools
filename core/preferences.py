@@ -89,18 +89,38 @@ class EZUE4AddonPreferences(AddonPreferences):
         subtype='DIR_PATH',
         update=_source_path_changed,
     )
+    
+    collection_export_name_template: StringProperty(
+        name="Export name regex",
+        description="Only the current scene will be exported (if false all scenes are used)",
+        default= "$(file)_$(collection)",
+        subtype='NONE'
+    )
+    
+    armature_export_name_template: StringProperty(
+        name="Export name regex",
+        description="Only the current scene will be exported (if false all scenes are used)",
+        default= "$(file)_$(armature)",
+        subtype='NONE'
+    )
 
     def draw(self, context):
         """Draws the preferences."""
+        self.layout.prop(self, 'source_path', expand=True)
         self.layout.prop(self, 'show_export_dialog', expand=True)
         self.layout.prop(self, 'export_prefix', expand=True)
         self.layout.prop(self, 'export_priority_object_prefix', expand=True)
         self.layout.prop(self, 'collision_regex', expand=True)
-        self.layout.prop(self, 'lowpoly_regex', expand=True)
-        self.layout.prop(self, 'highpoly_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
         self.layout.prop(self, 'export_respect_scene', expand=True)
-        self.layout.prop(self, 'source_path', expand=True)
+        box = self.layout.box()
+        box.label(text="Collection Export:", icon="TRIA_RIGHT")
+        box.prop(self, 'lowpoly_regex', expand=True)
+        box.prop(self, 'highpoly_regex', expand=True)
+        box.prop(self, 'collection_export_name_template', expand=True)
+        box = self.layout.box()
+        box.label(text="Armature Export:", icon="TRIA_RIGHT")
+        box.prop(self, 'armature_export_name_template', expand=True)
 
     def set_items(self, items):
         """Sets custom properties back on this item."""

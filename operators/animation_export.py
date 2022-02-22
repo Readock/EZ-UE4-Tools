@@ -2,7 +2,7 @@ import bpy
 import os
 import fnmatch
 from bpy.props import BoolProperty
-from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog
+from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog, get_armature_export_name_template
 from ..utils import collections, modifiers, objects, armatures, export
 
 ACTIONS_SUFFIX = "_Animations"
@@ -118,10 +118,14 @@ class AnimationExporter(bpy.types.Operator):
         objects.set_active(armature)
         selectedObjs.append(armature)
         return selectedObjs
-
+ 
     def get_export_name_of_armature(self, armature):
         """Generates the output name for an armature"""
-        return get_project_name() + "_" + armature.name.removeprefix(get_export_prefix())
+        name = get_armature_export_name_template()
+        armature_name = armature.name.removeprefix(get_export_prefix())
+        name = name.replace("$(armature)", armature_name)
+        name = name.replace("$(file)", get_project_name())
+        return name
 
     def batch_export_actions(self, armature):
         """Export all actions as seperate fbx file"""
