@@ -6,6 +6,7 @@ from bpy.types import Menu
 from bpy.utils import previews, register_class, unregister_class
 from ..operators.animation_export import AnimationExporter
 from ..operators.collection_exporter import CollectionExporter
+from ..operators.open_source_path import OpenSourcePath
 from ..core import find_exportable_armatures, find_exportable_collections
 
 
@@ -80,15 +81,17 @@ class PieSave(Menu):
 
         column = box.column()
         b = column.box()
-        self.draw_right_column(b)
+        self.draw_center_column_1(b)
 
         b = column.box()
-        self.draw_center_column_top(context, b)
+        self.draw_center_column_2(context, b)
 
         b = column.box()
-        self.draw_center_column_bottom(b)
+        self.draw_center_column_3(b)
 
-
+        b = column.box()
+        self.draw_center_column_4(b)
+        
         # 7 - TOP - LEFT
         pie.separator()
 
@@ -96,7 +99,16 @@ class PieSave(Menu):
         pie.separator()
 
 
-    def draw_center_column_top(self, context, layout):
+    def draw_center_column_1(self, layout):
+        column = layout.column(align=True)
+
+        row = column.split(factor=0.25, align=True)
+        row.label(text="Blender")
+        row = row.split(factor=0.5, align=True)
+        row.operator("wm.append", text="Append", icon_value=get_icon('append'))
+        row.operator("wm.link", text="Link", icon_value=get_icon('link'))
+
+    def draw_center_column_2(self, context, layout):
         column = layout.column(align=True)
 
         row = column.split(factor=0.25, align=True)
@@ -113,7 +125,12 @@ class PieSave(Menu):
         op.use_selection = True if context.selected_objects else False
         op.apply_scale_options='FBX_SCALE_ALL'
 
-    def draw_center_column_bottom(self, layout):
+    def draw_center_column_3(self, layout):
+        column = layout.column(align=True)
+        row = column.split(align=True)
+        row.operator(OpenSourcePath.bl_idname, text="Open Output Folder", icon=OpenSourcePath.custom_icon)
+
+    def draw_center_column_4(self, layout):
         column = layout.column(align=True)
 
         row = column.split(factor=0.5, align=True)
@@ -123,27 +140,18 @@ class PieSave(Menu):
         export_objects = find_exportable_armatures()
         if export_objects:
             collection_text = f"Export Armatures ({len(export_objects)})"
-            row.operator(AnimationExporter.bl_idname, text=collection_text, icon='OUTLINER_OB_ARMATURE')
+            row.operator(AnimationExporter.bl_idname, text=collection_text, icon=AnimationExporter.custom_icon)
         else:
-            row.label(text="No Export Armatures", icon='OUTLINER_OB_ARMATURE')
+            row.label(text="No Export Armatures", icon=AnimationExporter.custom_icon)
         
 
         export_objects = find_exportable_collections()
         collection_text="No Export Collections in scene!"
         if export_objects:
             collection_text = f"Export Collections ({len(export_objects)})"
-            row.operator(CollectionExporter.bl_idname, text=collection_text, icon='OUTLINER_OB_GROUP_INSTANCE')
+            row.operator(CollectionExporter.bl_idname, text=collection_text, icon=CollectionExporter.custom_icon)
         else:
-            row.label(text="No Export Collections", icon='OUTLINER_OB_GROUP_INSTANCE')
-
-    def draw_right_column(self, layout):
-        column = layout.column(align=True)
-
-        row = column.split(factor=0.25, align=True)
-        row.label(text="Blender")
-        row = row.split(factor=0.5, align=True)
-        row.operator("wm.append", text="Append", icon_value=get_icon('append'))
-        row.operator("wm.link", text="Link", icon_value=get_icon('link'))
+            row.label(text="No Export Collections", icon=CollectionExporter.custom_icon)
 
 __classes__ = (
     EZUE4Menu,

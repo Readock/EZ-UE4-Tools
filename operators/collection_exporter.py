@@ -8,7 +8,6 @@ from ..core import find_exportable_collections, get_collision_prefix, get_export
 from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex, get_collection_export_name_template
 from ..utils import collections, modifiers, objects, export
 
-GROUPS_ICON = 'OUTLINER_OB_GROUP_INSTANCE'
 BUNDLE_SUFFIX = '_bundle'
 
 class CollectionExporter(bpy.types.Operator):
@@ -17,6 +16,7 @@ class CollectionExporter(bpy.types.Operator):
     bl_idname = "screen.ezue4_export"
     bl_label = "Export Collections"
     bl_description = "Export collections"
+    custom_icon = 'OUTLINER_OB_GROUP_INSTANCE'
 
     fix_scale_on_export: BoolProperty(name="Fix Scale", description="Scale x100 to fix unreal scaling issues", default=True)
     auto_uv_unwrap_export: BoolProperty(name="Auto UV Unwrap", description="Automated unwrapping after merging objects", default=False)
@@ -373,7 +373,7 @@ def menu_draw(self, context):
     menu_text="No Export Collections in scene!"
     if export_objects:
         menu_text = f"Export Collections ({len(export_objects)})"
-    self.layout.operator(CollectionExporter.bl_idname, text=menu_text, icon=GROUPS_ICON)
+    self.layout.operator(CollectionExporter.bl_idname, text=menu_text, icon=CollectionExporter.custom_icon)
 
 REGISTER_CLASSES = (
     CollectionExporter,

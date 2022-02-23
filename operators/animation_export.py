@@ -13,6 +13,7 @@ class AnimationExporter(bpy.types.Operator):
     bl_label = "Animation Export"
     bl_idname = "screen.ezue4_animation_export"
     bl_description = "Export armatures"
+    custom_icon = 'OUTLINER_OB_ARMATURE'
 
     display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
 
@@ -238,7 +239,7 @@ def menu_draw(self, context):
     menu_text="No Export Armatures in scene!"
     if export_objects:
         menu_text = f"Export Armatures ({len(export_objects)})"
-    self.layout.operator(AnimationExporter.bl_idname, text=menu_text, icon='OUTLINER_OB_ARMATURE')
+    self.layout.operator(AnimationExporter.bl_idname, text=menu_text, icon=AnimationExporter.custom_icon)
 
 
 REGISTER_CLASSES = (
