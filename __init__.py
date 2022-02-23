@@ -1,7 +1,7 @@
 """ A Blender add-on for faster fbx exporting """
 
 from . import operators
-from .core import menus, preferences, ui, register_recursive, unregister_recursive
+from .core import menus, preferences, ui, keymap, register_recursive, unregister_recursive
 
 bl_info = {
         "name": "EZ-UE4 Tools",
@@ -23,6 +23,7 @@ REGISTER_CLASSES = (
     ui,
     operators,
     menus,
+    keymap,
 )
 
 

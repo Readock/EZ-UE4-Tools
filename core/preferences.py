@@ -1,10 +1,12 @@
 """Blender add-on preferences for the Addon"""
 
-
+import bpy
+import rna_keymap_ui
 from os import environ, path
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from bpy.types import AddonPreferences
 from . import get_addon_name
+from .keymap import get_addon_keymaps
 
 
 class EZUE4AddonPreferences(AddonPreferences):
@@ -113,14 +115,24 @@ class EZUE4AddonPreferences(AddonPreferences):
         self.layout.prop(self, 'collision_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
         self.layout.prop(self, 'export_respect_scene', expand=True)
+        
         box = self.layout.box()
-        box.label(text="Collection Export:", icon="TRIA_RIGHT")
+        box.label(text="Collection Export:", icon="OUTLINER_OB_GROUP_INSTANCE")
         box.prop(self, 'lowpoly_regex', expand=True)
         box.prop(self, 'highpoly_regex', expand=True)
         box.prop(self, 'collection_export_name_template', expand=True)
+
         box = self.layout.box()
-        box.label(text="Armature Export:", icon="TRIA_RIGHT")
+        box.label(text="Armature Export:", icon="OUTLINER_OB_ARMATURE")
         box.prop(self, 'armature_export_name_template', expand=True)
+
+        box = self.layout.box()
+        box.label(text="Key Mappings:", icon="KEY_HLT")
+        kc = bpy.context.window_manager.keyconfigs.user
+        for km, kmi in get_addon_keymaps():
+            km = km.active()
+            box.context_pointer_set("keymap", km)
+            rna_keymap_ui.draw_kmi([], kc, km, kmi, box, 0)
 
     def set_items(self, items):
         """Sets custom properties back on this item."""
