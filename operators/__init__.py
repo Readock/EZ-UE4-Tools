@@ -9,6 +9,7 @@ from .documentation import AddonDocumentation
 from .open_source_path import OpenSourcePath
 from .collection_exporter import CollectionExporter
 from .animation_export import AnimationExporter
+from .selected_quick_exporter import SelectedQuickExporter
 
 
 # List of operators to load by default.
@@ -17,4 +18,5 @@ REGISTER_CLASSES = (
     OpenSourcePath,
     AnimationExporter,
     CollectionExporter,
+    SelectedQuickExporter,
 )

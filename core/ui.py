@@ -1,13 +1,15 @@
 """UI functionality including menus and icon management."""
 
-
+import bpy
 from os import listdir, path
 from bpy.types import Menu
 from bpy.utils import previews, register_class, unregister_class
+from ..operators.selected_quick_exporter import SelectedQuickExporter
 from ..operators.animation_export import AnimationExporter
 from ..operators.collection_exporter import CollectionExporter
 from ..operators.open_source_path import OpenSourcePath
 from ..core import find_exportable_armatures, find_exportable_collections
+from ..utils import objects
 
 
 __icon_manager__ = None
@@ -129,9 +131,21 @@ class PieSave(Menu):
         column = layout.column(align=True)
         row = column.split(align=True)
         row.operator(OpenSourcePath.bl_idname, text="Open Output Folder", icon=OpenSourcePath.custom_icon)
+        
+        column = layout.column(align=True)
+        row = column.split(align=True)        
+        if objects.get_selected():
+            row.operator(SelectedQuickExporter.bl_idname, text=f"Export selected ({len(objects.get_selected())})", icon=SelectedQuickExporter.custom_icon)
+        else:
+            row.label(text="Nothing selected!", icon=SelectedQuickExporter.custom_icon)
 
     def draw_center_column_4(self, layout):
         column = layout.column(align=True)
+
+        if not bpy.data.is_saved:
+            row = column.split(align=True)
+            row.label(text="Save blend file first!", icon="ERROR")
+            return
 
         row = column.split(factor=0.5, align=True)
         row.scale_y = 1

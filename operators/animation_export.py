@@ -230,13 +230,15 @@ class AnimationExporter(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         """Only allows this operator to execute if there is a valid selection."""
-        return find_exportable_armatures()
+        return find_exportable_armatures() and bpy.data.is_saved
 
 
 def menu_draw(self, context):
     """Create the menu item."""
     export_objects = find_exportable_armatures()
     menu_text="No Export Armatures in scene!"
+    if not bpy.data.is_saved:
+        menu_text = "Save file first!"
     if export_objects:
         menu_text = f"Export Armatures ({len(export_objects)})"
     self.layout.operator(AnimationExporter.bl_idname, text=menu_text, icon=AnimationExporter.custom_icon)

@@ -11,6 +11,9 @@ def set_active(obj):
 def get_active():
     return bpy.context.view_layer.objects.active
 
+def get_selected():
+    return bpy.context.selected_objects
+
 def deselect():
     """ Deselects all active elements """
     bpy.ops.object.select_all(action='DESELECT')
@@ -129,3 +132,48 @@ def is_in_current_Scene(object):
 def is_linked(collection):
     """If the collection is linked form another blend file"""
     return collection.library
+
+def resolve_atlas_uv_from_selected():
+    """ Fix names from Decal Machine """
+    # renames Atlas UVs so the join dose not break the UVs
+    # (when joining all UVs need to have the same name)
+    for obj in bpy.context.selected_objects:
+        for uvmap in  obj.data.uv_layers :
+            if uvmap.name == "Atlas UVs":
+                uvmap.name = "UVMap"
+                print("UV name missmatch detected and resolved")
+
+def ensure_selection_has_active():
+    """Selects the first of the selected objects if none is active"""
+    if not bpy.context.selected_objects or not get_active():
+        return
+    set_active(bpy.context.selected_objects[0])
+
+def join_selected(name = None):
+    """ Join selected objects in a duplicate object """
+    from . import modifiers
+
+    unselect_none_solid()
+        
+    if not bpy.context.selected_objects:
+        return
+
+    # duplicate selected objects
+    bpy.ops.object.duplicate()
+
+    # because issues with decalMachine
+    resolve_atlas_uv_from_selected()
+            
+    # apply modifiers
+    modifiers.apply_modifiers(bpy.context.selected_objects)
+    
+    ensure_selection_has_active()
+    
+    # join selected objects
+    bpy.ops.object.join()
+        
+    joined_object = bpy.context.selected_objects[0]
+    if name:
+        # rename joined object
+        joined_object.name = name
+    return joined_object

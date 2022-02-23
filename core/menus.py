@@ -60,6 +60,8 @@ def register():
         # operators.documentation,
         operators.open_source_path,
         SEPARATOR,
+        operators.selected_quick_exporter,
+        SEPARATOR,
         operators.animation_export,
         operators.collection_exporter,
     )

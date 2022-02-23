@@ -78,3 +78,13 @@ def is_in_current_Scene(collection):
     """If collection is in the current scene"""
     current_scene = bpy.context.scene    
     return all(current_scene in obj.users_scene for obj in collection.all_objects)
+
+def create_collection(collectionName):
+    """ Creates a collection if it dose not exist """
+    # create Export Collection if not exist
+    if not has_collection_with_name(collectionName):
+        collection = bpy.data.collections.new(collectionName)
+        bpy.context.scene.collection.children.link(collection)
+    
+    # make shure the collection is included
+    find_layer_collection_with_name(collectionName).exclude = False

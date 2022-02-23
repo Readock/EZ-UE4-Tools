@@ -93,15 +93,15 @@ class EZUE4AddonPreferences(AddonPreferences):
     )
     
     collection_export_name_template: StringProperty(
-        name="Export name regex",
-        description="Only the current scene will be exported (if false all scenes are used)",
+        name="Export name template",
+        description="Template for the export name",
         default= "$(file)_$(collection)",
         subtype='NONE'
     )
     
     armature_export_name_template: StringProperty(
-        name="Export name regex",
-        description="Only the current scene will be exported (if false all scenes are used)",
+        name="Export name template",
+        description="Template for the export name",
         default= "$(file)_$(armature)",
         subtype='NONE'
     )

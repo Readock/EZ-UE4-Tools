@@ -161,30 +161,11 @@ class CollectionExporter(bpy.types.Operator):
 
         collections.select_objects_of_collection_with_name(collection.name)
 
-        objects.unselect_none_solid()
-        
-        if not bpy.context.selected_objects:
-            return
-
-        # duplicate selected objects
-        bpy.ops.object.duplicate()
-
-        # because issues with decalMachine
-        self.resolve_atlas_uv()
-                
-        # apply modifiers
-        modifiers.apply_modifiers(bpy.context.selected_objects)
-        
-        self.set_active_object_of_selection()
-
-        # join selected objects
-        bpy.ops.object.join()
-            
-        # rename joined object
-        bpy.context.selected_objects[0].name = joinedMeshName
+        # join objects of collection into one object
+        joined_object = objects.join_selected(joinedMeshName)
         
         # move to export collection
-        collections.move_to_collection_with_name(bpy.context.selected_objects[0], get_export_collection_name())
+        collections.move_to_collection_with_name(joined_object, get_export_collection_name())
         collections.find_layer_collection_with_name(collection.name).exclude = was_excluded
 
     def set_active_object_of_selection(self):
@@ -194,7 +175,7 @@ class CollectionExporter(bpy.types.Operator):
         for obj in bpy.context.selected_objects:
             if obj.name.startswith(get_export_priority_object_prefix()):
                 objects.set_active(obj)
-                return;
+                return
         objects.set_active(bpy.context.selected_objects[0])
 
     def get_export_name_of_collection(self, collection):
@@ -212,13 +193,12 @@ class CollectionExporter(bpy.types.Operator):
     def set_up_export_collection_with_name(self, collectionName):
         """ Creates the export collection or deletes all objects inside if it alredy exists """
         # create Export Collection if not exist
-        if not collections.has_collection_with_name(collectionName):
-            collection = bpy.data.collections.new(collectionName)
-            bpy.context.scene.collection.children.link(collection)
-        bpy.ops.object.select_all(action='DESELECT')
+        collections.create_collection(collectionName)
         
         # make shure the collection is included
         collections.find_layer_collection_with_name(collectionName).exclude = False
+
+        bpy.ops.object.select_all(action='DESELECT')
 
         #select all objects in Export and delete them
         collections.select_objects_of_collection_with_name(collectionName)
@@ -252,7 +232,8 @@ class CollectionExporter(bpy.types.Operator):
 
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
-        self.export_selected_as_fbx(parentExportName)
+        export_path = os.path.join( get_source_path() , parentExportName + ".fbx")
+        export.selected_objects_as_fbx(fix_scale = self.fix_scale_on_export, export_path=export_path)
         objects.deselect()
 
     def export_collection(self, collection):
@@ -299,7 +280,8 @@ class CollectionExporter(bpy.types.Operator):
         objects.set_active(mesh)
 
         #export fbx
-        self.export_selected_as_fbx(exportName)
+        export_path = os.path.join( get_source_path() , exportName + ".fbx")
+        export.selected_objects_as_fbx(fix_scale=self.fix_scale_on_export, export_path=export_path)
 
         # reset ucx exclude state
         if has_ucx:
@@ -328,26 +310,6 @@ class CollectionExporter(bpy.types.Operator):
             if c.name.removeprefix(get_collision_prefix()) == clean_name:
                 return c
         return None
-
-    def export_selected_as_fbx(self, export_name):    
-        """ Exports selected objects as fbx """
-        if self.fix_scale_on_export:
-            # scale to fix ue4 scaling issues
-            export_scale_factor = export.units_blender_to_fbx_factor()
-            objects.unit_scale_selected(export_scale_factor)
-            objects.apply_scale_and_rotation_to_selected()
-        export_path = os.path.join( get_source_path() , export_name + ".fbx")
-        bpy.ops.export_scene.fbx(filepath=export_path, 
-            use_selection=True,            
-            apply_scale_options='FBX_SCALE_ALL', 
-            apply_unit_scale= True,
-            bake_space_transform=False,
-            global_scale= 1.0,
-            mesh_smooth_type="EDGE")
-        if self.fix_scale_on_export:
-            # revert the scaling (for better debugging and ucx was scaled as well)
-            objects.unit_scale_selected(1.0/export_scale_factor)
-            objects.apply_scale_and_rotation_to_selected()
         
     def export_collections(self, exportCollections):
         """Exports all exportCollections to a fbx file"""
@@ -365,12 +327,14 @@ class CollectionExporter(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         """Only allows this operator to execute if there is a valid selection."""
-        return  find_exportable_collections()
+        return find_exportable_collections() and bpy.data.is_saved
     
 def menu_draw(self, context):
     """Create the menu item."""
     export_objects = find_exportable_collections()
     menu_text="No Export Collections in scene!"
+    if not bpy.data.is_saved:
+        menu_text = "Save file first!"
     if export_objects:
         menu_text = f"Export Collections ({len(export_objects)})"
     self.layout.operator(CollectionExporter.bl_idname, text=menu_text, icon=CollectionExporter.custom_icon)
