@@ -89,14 +89,14 @@ class CollectionExporter(bpy.types.Operator):
 
         row = box.row(align=True)
         row.label(icon="FILTER")
+        row.prop(self, "should_export_disabled", toggle=True)
+
+        row = box.row(align=True)
+        row.label(icon="FILTER")
         row.prop(self, "should_export_other", text="Other", toggle=True)
         row.prop(self, "should_export_lp", text="LP", toggle=True)
         row.prop(self, "should_export_hp", text="HP", toggle=True)
         row.prop(self, "should_export_ucx", text="UCX", toggle=True, icon="MESH_CUBE")
-
-        row = box.row(align=True)
-        row.label(icon="FILTER")
-        row.prop(self, "should_export_disabled", toggle=True)
 
         row = box.row()
         row.prop(self, "fix_scale_on_export")
