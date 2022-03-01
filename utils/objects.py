@@ -1,6 +1,15 @@
 import bpy
 import os
 
+def add_to_selection(obj):
+    """ Sets the object as selected (and not active) """
+    if obj:
+        obj.select_set(True)
+
+def remove_from_selection(obj):
+    """ Sets the object as not selected"""
+    if obj:
+        obj.select_set(False)
 
 def set_active(obj):
     """ Sets the object as active """
@@ -38,7 +47,7 @@ def unselect_none_solid():
     for obj in bpy.context.selected_objects:
         if obj and obj.type == 'MESH':
             if obj.display_type == 'WIRE' or obj.display_type == 'BOUNDS':
-                obj.select_set(False)
+                remove_from_selection(obj)
 
 def switch_to_object_mode():
     """ Switch mode to object mode """
@@ -145,15 +154,40 @@ def resolve_atlas_uv_from_selected():
 
 def ensure_selection_has_active():
     """Selects the first of the selected objects if none is active"""
-    if not bpy.context.selected_objects or not get_active():
+    if not bpy.context.selected_objects or get_active():
         return
     set_active(bpy.context.selected_objects[0])
+
+def delete(obj):
+    """Deletes an object"""
+    bpy.data.objects.remove(obj, do_unlink=True)
+
+def convert_selected_to_mesh():
+    """ Converts selected objects to mesh """
+    selected_objects = get_selected()
+    active_object = get_active()
+    has_changed_selection = False
+
+    for obj in selected_objects:
+        if obj.type == "CURVE" or obj.type == "GPENCIL":
+            deselect()
+            set_active(obj)
+            has_changed_selection = True
+            switch_to_object_mode()
+            bpy.ops.object.convert(target='MESH')
+
+    # revert selection to original
+    if has_changed_selection:
+        deselect()
+        for obj in selected_objects:
+            add_to_selection(obj)
+        if active_object:
+            set_active(active_object)
+
 
 def join_selected(name = None):
     """ Join selected objects in a duplicate object """
     from . import modifiers
-
-    unselect_none_solid()
         
     if not bpy.context.selected_objects:
         return
@@ -161,14 +195,17 @@ def join_selected(name = None):
     # duplicate selected objects
     bpy.ops.object.duplicate()
 
+    # convert eg. curves to mesh
+    convert_selected_to_mesh()
+
+    ensure_selection_has_active()
+
     # because issues with decalMachine
     resolve_atlas_uv_from_selected()
             
     # apply modifiers
     modifiers.apply_modifiers(bpy.context.selected_objects)
-    
-    ensure_selection_has_active()
-    
+        
     # join selected objects
     bpy.ops.object.join()
         

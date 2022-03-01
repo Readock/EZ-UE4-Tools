@@ -46,8 +46,12 @@ def get_export_prefix():
     return get_preferences().export_prefix
 
 def get_export_priority_object_prefix():
-    """Returns the Addon's export prefix for collections."""
+    """Returns the Addon's export prefix for priority objects."""
     return get_preferences().export_priority_object_prefix
+
+def get_export_exclude_object_prefix():
+    """Returns the Addon's export prefix for object exclude."""
+    return get_preferences().export_exclude_object_prefix
 
 def get_collision_prefix():
     """Returns the Addon's collision prefix for collections."""
@@ -69,10 +73,6 @@ def get_show_export_dialog():
     """Returns the Addon's Project source path."""
     return get_preferences().show_export_dialog
 
-def get_export_respect_scene():
-    """Export current scene only."""
-    return get_preferences().export_respect_scene
-
 def get_collection_export_name_template():
     """Export current scene only."""
     return get_preferences().collection_export_name_template
@@ -85,7 +85,7 @@ def find_exportable_collections():
     """Finds all the collections marked for export"""
     export_collections = []
     for collection in bpy.data.collections:
-        if collection.name.startswith(get_export_prefix()) and not collections.is_linked(collection) and (not get_export_respect_scene() or collections.is_in_current_Scene(collection)):
+        if collection.name.startswith(get_export_prefix()) and not collections.is_linked(collection) and collections.is_in_current_Scene(collection):
             export_collections.append(collection)
     return export_collections
 
@@ -93,9 +93,25 @@ def find_exportable_armatures():
     """Finds all the collections marked for export"""
     export_armatures = []
     for armature in objects.find_all_of_type('ARMATURE'):
-        if armature.name.startswith(get_export_prefix()) and (not get_export_respect_scene() or objects.is_in_current_Scene(armature)):
+        if armature.name.startswith(get_export_prefix()) and objects.is_in_current_Scene(armature):
             export_armatures.append(armature)
     return export_armatures
+
+def unselect_unwanted_objects_for_export():
+    """Excludes unwanted objects from the selection"""
+    for obj in bpy.context.selected_objects:
+        if obj.name.startswith(get_export_exclude_object_prefix()):
+            objects.remove_from_selection(obj)
+
+def set_selection_priority_object_as_active():
+    """Selects the first or marked object of the selected objects as active"""
+    if not bpy.context.selected_objects:
+        return
+    for obj in bpy.context.selected_objects:
+        if obj.name.startswith(get_export_priority_object_prefix()):
+            objects.set_active(obj)
+            return
+    objects.set_active(bpy.context.selected_objects[0])
 
 def reload_addon():
     """Reloads the Addon and all of its modules."""

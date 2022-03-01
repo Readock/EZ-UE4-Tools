@@ -3,8 +3,8 @@
 import bpy
 import os
 import re
-from bpy.props import BoolProperty
-from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, get_export_priority_object_prefix
+from bpy.props import BoolProperty, EnumProperty
+from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, set_selection_priority_object_as_active, unselect_unwanted_objects_for_export
 from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex, get_collection_export_name_template
 from ..utils import collections, modifiers, objects, export
 
@@ -28,6 +28,7 @@ class CollectionExporter(bpy.types.Operator):
     should_export_hp: BoolProperty(name="HP", default=True)
     should_export_ucx: BoolProperty(name="UCX", default=True)
 
+    should_export_disabled: BoolProperty(name="Export Excluded Collections", default=True)
 
     display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
 
@@ -46,8 +47,9 @@ class CollectionExporter(bpy.types.Operator):
             self.export_collections(collections_to_export)
         except Exception as ex: 
             self.report({'WARNING'}, "Export Failed! See console for more information")
-            print(f"Error: Failed to export, reason: {ex}")        
-            
+            print(f"Error: Failed to export, reason: {ex}")
+            import traceback
+            traceback.print_exc()
 
         return {'FINISHED'}
 
@@ -56,6 +58,8 @@ class CollectionExporter(bpy.types.Operator):
         exportable_collections = find_exportable_collections()
         filtered_exportable_collections = []
         for collection in exportable_collections:
+            if collections.find_layer_collection_with_name(collection.name).exclude and not self.should_export_disabled:
+                continue # ignore excluded collection if desired
             if self.is_collection_hp(collection):
                 if self.should_export_hp:
                     filtered_exportable_collections.append(collection)
@@ -90,6 +94,10 @@ class CollectionExporter(bpy.types.Operator):
         row.prop(self, "should_export_hp", text="HP", toggle=True)
         row.prop(self, "should_export_ucx", text="UCX", toggle=True, icon="MESH_CUBE")
 
+        row = box.row(align=True)
+        row.label(icon="FILTER")
+        row.prop(self, "should_export_disabled", toggle=True)
+
         row = box.row()
         row.prop(self, "fix_scale_on_export")
         row.prop(self, "auto_uv_unwrap_export")
@@ -102,7 +110,7 @@ class CollectionExporter(bpy.types.Operator):
         export_collections = self.find_filtered_exportable_collections()
 
         box2 = self.layout.box()
-        box2.prop(self, "display_exportable", icon="TRIA_DOWN" if self.display_exportable else "TRIA_RIGHT", text="Output")
+        box2.prop(self, "display_exportable", icon="TRIA_DOWN" if self.display_exportable else "TRIA_RIGHT", text=f"Output ({len(export_collections)})")
 
         if self.display_exportable:
             for collection in export_collections:
@@ -128,17 +136,6 @@ class CollectionExporter(bpy.types.Operator):
                 i += 1 
                 obj.name = "UCX_"+exportName+"_{:02d}".format(i)
 
-    
-    def resolve_atlas_uv(self):
-        """ Fix names from Decal Machine """
-        # renames Atlas UVs so the join dose not break the UVs
-        # (when joining all UVs need to have the same name)
-        for obj in bpy.context.selected_objects:
-            for uvmap in  obj.data.uv_layers :
-                if uvmap.name == "Atlas UVs":
-                    uvmap.name = "UVMap"
-                    print("UV name missmatch detected and resolved")
-
     def selection_non_child_as_active(self):
         """ Set first that has no parent as active """
         # (bug with decals) 
@@ -161,22 +158,15 @@ class CollectionExporter(bpy.types.Operator):
 
         collections.select_objects_of_collection_with_name(collection.name)
 
+        unselect_unwanted_objects_for_export()
+        set_selection_priority_object_as_active() 
+        objects.unselect_none_solid()
         # join objects of collection into one object
         joined_object = objects.join_selected(joinedMeshName)
         
         # move to export collection
         collections.move_to_collection_with_name(joined_object, get_export_collection_name())
         collections.find_layer_collection_with_name(collection.name).exclude = was_excluded
-
-    def set_active_object_of_selection(self):
-        """Selects the first or marked object of the selected objects as active"""
-        if not bpy.context.selected_objects:
-            return
-        for obj in bpy.context.selected_objects:
-            if obj.name.startswith(get_export_priority_object_prefix()):
-                objects.set_active(obj)
-                return
-        objects.set_active(bpy.context.selected_objects[0])
 
     def get_export_name_of_collection(self, collection):
         """Gets the export name of an collection"""

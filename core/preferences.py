@@ -44,9 +44,16 @@ class EZUE4AddonPreferences(AddonPreferences):
     )
 
     export_priority_object_prefix: StringProperty(
-        name="First priority object prefix",
+        name="Object first priority prefix",
         description="Object prefix to set this object as active before merging (eg. to use its origin or shading)",
         default= ".",
+        subtype='NONE'
+    )
+    
+    export_exclude_object_prefix: StringProperty(
+        name="Object exclude prefix",
+        description="Prefix name to detect objects that should not be exported",
+        default= "#",
         subtype='NONE'
     )
     
@@ -69,12 +76,6 @@ class EZUE4AddonPreferences(AddonPreferences):
         description="Regex to detect high poly",
         default= "(?i)_hp$",
         subtype='NONE'
-    )
-    
-    export_respect_scene: BoolProperty(
-        name="Only Export current scene",
-        description="Only the current scene will be exported (if false all scenes are used)",
-        default= True,
     )
     
     export_collection_name: StringProperty(
@@ -112,9 +113,9 @@ class EZUE4AddonPreferences(AddonPreferences):
         self.layout.prop(self, 'show_export_dialog', expand=True)
         self.layout.prop(self, 'export_prefix', expand=True)
         self.layout.prop(self, 'export_priority_object_prefix', expand=True)
+        self.layout.prop(self, 'export_exclude_object_prefix', expand=True)        
         self.layout.prop(self, 'collision_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
-        self.layout.prop(self, 'export_respect_scene', expand=True)
         
         box = self.layout.box()
         box.label(text="Collection Export:", icon="OUTLINER_OB_GROUP_INSTANCE")

@@ -2,7 +2,7 @@ import bpy
 import os
 import fnmatch
 from bpy.props import BoolProperty
-from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog, get_armature_export_name_template
+from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog, get_armature_export_name_template, unselect_unwanted_objects_for_export
 from ..utils import collections, modifiers, objects, armatures, export
 
 ACTIONS_SUFFIX = "_Animations"
@@ -107,7 +107,6 @@ class AnimationExporter(bpy.types.Operator):
                     
     def select_armature_with_mesh(self, armature):
         """Selects only all child objects that must be exported with parent object"""
-        selectedObjs = []
         bpy.ops.object.select_all(action='DESELECT')
         for child in objects.get_children_of(armature):
             if child.name in bpy.context.view_layer.objects:
@@ -115,10 +114,8 @@ class AnimationExporter(bpy.types.Operator):
                 # ue4 read it like a bone
                 if not fnmatch.fnmatchcase(child.name, "SOCKET*"):
                     child.select_set(True)
-                    selectedObjs.append(child)
         objects.set_active(armature)
-        selectedObjs.append(armature)
-        return selectedObjs
+        unselect_unwanted_objects_for_export()
  
     def get_export_name_of_armature(self, armature):
         """Generates the output name for an armature"""

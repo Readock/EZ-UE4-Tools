@@ -27,7 +27,7 @@ def select_objects_of_collection(collection):
     """ Select all Objects of a collection """
     bpy.ops.object.select_all(action='DESELECT')
     for obj in collection.all_objects:
-        if obj and obj.type == 'MESH':
+        if obj and (obj.type == 'MESH' or obj.type == 'CURVE' or obj.type == 'GPENCIL'):
             obj.select_set(True)
 
 def select_objects_of_collection_with_name(collectionName):
