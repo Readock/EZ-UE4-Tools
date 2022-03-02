@@ -55,9 +55,11 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
 
         row = box.row()
         row.prop(self, "fix_scale_on_export")
+        row = box.row()
         row.prop(self, "auto_uv_unwrap_export")
         row = box.row()
         row.prop(self, "exclude_none_solid")
+        row = box.row()
         row.prop(self, "clean_up_export")
 
 
