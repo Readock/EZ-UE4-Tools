@@ -7,26 +7,24 @@ from ..core import get_export_collection_name, get_project_name, get_source_path
 from ..utils import collections, export, objects
 from bpy_extras.io_utils import ExportHelper
 
-BUNDLE_SUFFIX = '_bundle'
-
 class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
     """ Export collections """
-
     bl_idname = "screen.ezue4_export_selected"
     bl_label = "Quick Export Selected"
     bl_description = "Export collections"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
     custom_icon = 'TIME'
 
     fix_scale_on_export: BoolProperty(name="Fix Scale", description="Scale x100 to fix unreal scaling issues", default=True)
-    auto_uv_unwrap_export: BoolProperty(name="Auto UV Unwrap", description="Automated unwrapping after merging objects", default=False)
+    auto_uv_unwrap_export: BoolProperty(name="Auto UV Unwrap", description="Automated unwrapping after merging objects", default=True)
     clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
-    export_file_name: StringProperty(name="File Name", description="Name of the fbx export file", default="quick_export")
+    exclude_none_solid: BoolProperty(name="Exclude None-Solid", description="Dont export selected WIRE or BOUNDS objects", default=True)
 
-    display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
-
-
-    # ExportHelper class uses this
+    # Override ExportHelper
+    filepath: StringProperty(subtype="FILE_PATH", default='untitled')
     filename_ext = ".fbx"
+    filter_glob : StringProperty(default="*.fbx", options={'HIDDEN'})
 
     def execute(self, context):
         """Exports the selected objects"""        
@@ -47,42 +45,25 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}     
 
     def invoke(self, context, event):
-        if get_show_export_dialog():
-            return context.window_manager.invoke_props_dialog(self)
-        return self.execute(context)
+        self.filepath = "ez_quick_export" + self.filename_ext
+        context.window_manager.fileselect_add(self)  
+        return {'RUNNING_MODAL'}
 
     def draw(self, context):
-        """ Draw List of collections to export """
-        # export to file name
-        # self.export_file_name.default = get_project_name() + "_quick_export"
-        
+        """ Draw export settings """        
         box = self.layout.box()
 
         row = box.row()
         row.prop(self, "fix_scale_on_export")
         row.prop(self, "auto_uv_unwrap_export")
         row = box.row()
+        row.prop(self, "exclude_none_solid")
         row.prop(self, "clean_up_export")
-
-        row = box.row()
-        row.prop(self, "export_file_name")
-
-        if not self.export_file_name:
-            return
-
-        box2 = self.layout.box()
-        box2.prop(self, "display_exportable", icon="TRIA_DOWN" if self.display_exportable else "TRIA_RIGHT", text="Output")
-
-        if self.display_exportable:
-            row = box2.row()
-            row.alignment = 'LEFT'
-            row.label(icon="EXPORT")
-            row.label(text=self.export_file_name)  
 
 
     def export_selected(self):
         """ Export objects of a collection to a FBX """
-        if not objects.get_selected() or not self.export_file_name:
+        if not objects.get_selected():
             return
 
         self.report({'INFO'}, f"Exporting selected objects")
@@ -90,6 +71,8 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         print("Exporting: Selected objects")
         print("==========================")
 
+        if self.exclude_none_solid:
+            objects.unselect_none_solid()
 
         joined_obj = objects.join_selected()
         
@@ -103,8 +86,7 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
             objects.auto_uv_selected()
 
         # export
-        export_path = os.path.join( get_source_path() , self.export_file_name + ".fbx")
-        export.selected_objects_as_fbx(fix_scale = self.fix_scale_on_export, export_path=export_path)
+        export.selected_objects_as_fbx(fix_scale = self.fix_scale_on_export, export_path=self.filepath)
         
         if self.clean_up_export:
             collections.delete_collection_with_name(get_export_collection_name())
@@ -117,7 +99,7 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
     @classmethod
     def poll(cls, context):
         """Only allows this operator to execute if there is a valid selection."""
-        return objects.get_selected() and bpy.data.is_saved
+        return objects.get_selected()
     
 def menu_draw(self, context):
     """Create the menu item."""
