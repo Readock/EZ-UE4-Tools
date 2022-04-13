@@ -185,20 +185,26 @@ def convert_selected_to_mesh():
             set_active(active_object)
 
 
-def join_selected(name = None):
+def smart_join_selected(name = None):
     """ Join selected objects in a duplicate object """
     from . import modifiers
+    from ..core import set_selection_priority_object_as_active, unselect_unwanted_objects_for_export
         
     if not bpy.context.selected_objects:
         return
 
+    unselect_none_solid()
+    unselect_unwanted_objects_for_export()
+    # select best to use its config (eg. auto smooth)
+    set_selection_priority_object_as_active() 
+
     # duplicate selected objects
     bpy.ops.object.duplicate()
 
+    duplicated_active = get_active()
+
     # convert eg. curves to mesh
     convert_selected_to_mesh()
-
-    ensure_selection_has_active()
 
     # because issues with decalMachine
     resolve_atlas_uv_from_selected()
@@ -206,6 +212,12 @@ def join_selected(name = None):
     # apply modifiers
     modifiers.apply_modifiers(bpy.context.selected_objects)
         
+    # set duplicate of priority object as active (or if null any other)
+    if duplicated_active:
+        set_active(duplicated_active)
+    else:
+        ensure_selection_has_active()
+
     # join selected objects
     bpy.ops.object.join()
         

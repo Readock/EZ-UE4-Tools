@@ -76,7 +76,7 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         if self.exclude_none_solid:
             objects.unselect_none_solid()
 
-        joined_obj = objects.join_selected()
+        joined_obj = objects.smart_join_selected()
         
         collections.create_collection(get_export_collection_name())
 

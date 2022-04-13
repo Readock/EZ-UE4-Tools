@@ -4,7 +4,7 @@ import bpy
 import os
 import re
 from bpy.props import BoolProperty, EnumProperty
-from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, set_selection_priority_object_as_active, unselect_unwanted_objects_for_export
+from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, unselect_unwanted_objects_for_export
 from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex, get_collection_export_name_template
 from ..utils import collections, modifiers, objects, export
 
@@ -158,11 +158,8 @@ class CollectionExporter(bpy.types.Operator):
 
         collections.select_objects_of_collection_with_name(collection.name)
 
-        unselect_unwanted_objects_for_export()
-        set_selection_priority_object_as_active() 
-        objects.unselect_none_solid()
         # join objects of collection into one object
-        joined_object = objects.join_selected(joinedMeshName)
+        joined_object = objects.smart_join_selected(joinedMeshName)
         
         # move to export collection
         collections.move_to_collection_with_name(joined_object, get_export_collection_name())
@@ -265,6 +262,7 @@ class CollectionExporter(bpy.types.Operator):
 
                 self.rename_ucx_collection_objects(ucx_collection.name, exportName)
                 collections.select_objects_of_collection(ucx_collection)
+                unselect_unwanted_objects_for_export()
         
         # set joined mesh as active
         objects.set_active(mesh)
