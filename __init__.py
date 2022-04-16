@@ -21,9 +21,9 @@ bl_info = {
 REGISTER_CLASSES = (
     preferences,
     ui,
-    operators,
     menus,
     keymap,
+    operators,
 )
 
 

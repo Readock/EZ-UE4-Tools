@@ -2,8 +2,8 @@ import bpy
 import os
 import fnmatch
 from bpy.props import BoolProperty
-from ..core import find_exportable_armatures, get_export_prefix, get_project_name, get_source_path, get_show_export_dialog, get_armature_export_name_template, unselect_unwanted_objects_for_export
-from ..utils import collections, modifiers, objects, armatures, export
+from ..core import find_exportable_armatures, unselect_unwanted_objects_for_export, preferences
+from ..utils import collections, modifiers, objects, armatures, export, addon
 
 ACTIONS_SUFFIX = "_Animations"
 
@@ -45,7 +45,7 @@ class AnimationExporter(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if get_show_export_dialog():
+        if preferences.show_export_dialog():
             return context.window_manager.invoke_props_dialog(self)
         return self.execute(context)
 
@@ -119,10 +119,10 @@ class AnimationExporter(bpy.types.Operator):
  
     def get_export_name_of_armature(self, armature):
         """Generates the output name for an armature"""
-        name = get_armature_export_name_template()
-        armature_name = armature.name.removeprefix(get_export_prefix())
+        name = preferences.armature_export_name_template()
+        armature_name = armature.name.removeprefix(preferences.export_prefix())
         name = name.replace("$(armature)", armature_name)
-        name = name.replace("$(file)", get_project_name())
+        name = name.replace("$(file)", addon.get_project_name())
         return name
 
     def batch_export_actions(self, armature):
@@ -153,7 +153,7 @@ class AnimationExporter(bpy.types.Operator):
 
     def export_mesh_as_fbx(self, name):
         """Export fbx"""
-        export_path = os.path.join( get_source_path() , name + ".fbx")
+        export_path = os.path.join( preferences.source_path() , name + ".fbx")
         bpy.ops.export_scene.fbx(
             filepath=bpy.path.abspath(export_path),
             object_types={'ARMATURE', 'EMPTY', 'MESH'},
@@ -171,7 +171,7 @@ class AnimationExporter(bpy.types.Operator):
 
     def export_action_as_fbx(self, name):
         """Export fbx"""        
-        export_path = os.path.join( get_source_path() , name + ".fbx")
+        export_path = os.path.join( preferences.source_path() , name + ".fbx")
         bpy.ops.export_scene.fbx(
             filepath=bpy.path.abspath(export_path),
             object_types={'ARMATURE', 'EMPTY'},

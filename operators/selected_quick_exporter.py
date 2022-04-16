@@ -3,7 +3,7 @@
 import bpy
 import os
 from bpy.props import BoolProperty, StringProperty
-from ..core import get_export_collection_name, get_project_name, get_source_path, get_show_export_dialog
+from ..core import preferences
 from ..utils import collections, export, objects
 from bpy_extras.io_utils import ExportHelper
 
@@ -76,12 +76,12 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         if self.exclude_none_solid:
             objects.unselect_none_solid()
 
-        joined_obj = objects.join_selected()
+        joined_obj = objects.smart_join_selected()
         
-        collections.create_collection(get_export_collection_name())
+        collections.create_collection(preferences.export_collection_name())
 
         # move to export collection
-        collections.move_to_collection_with_name(joined_obj, get_export_collection_name())
+        collections.move_to_collection_with_name(joined_obj, preferences.export_collection_name())
 
         # auto UV
         if self.auto_uv_unwrap_export:
@@ -91,7 +91,7 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         export.selected_objects_as_fbx(fix_scale = self.fix_scale_on_export, export_path=self.filepath)
         
         if self.clean_up_export:
-            collections.delete_collection_with_name(get_export_collection_name())
+            collections.delete_collection_with_name(preferences.export_collection_name())
     
         self.report({'INFO'}, f"Export Completed")
         print("==========================")

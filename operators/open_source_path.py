@@ -1,7 +1,7 @@
 """Open the addon's output path in explorer"""
 
 import bpy
-from ..core import get_source_path
+from ..core import preferences
 import os
 import subprocess
 
@@ -17,7 +17,7 @@ class OpenSourcePath(bpy.types.Operator):
 
     def execute(self, context):
         """Open the default web browser to the help URL."""
-        self.explore(get_source_path())
+        self.explore(preferences.source_path())
         return {'FINISHED'}
 
     

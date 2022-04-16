@@ -4,16 +4,10 @@ import bpy
 from os import listdir, path
 from bpy.types import Menu
 from bpy.utils import previews, register_class, unregister_class
-from ..operators.selected_quick_exporter import SelectedQuickExporter
-from ..operators.animation_export import AnimationExporter
-from ..operators.collection_exporter import CollectionExporter
-from ..operators.open_source_path import OpenSourcePath
-from ..core import find_exportable_armatures, find_exportable_collections
+from .. import core
 from ..utils import objects
 
-
 __icon_manager__ = None
-
 
 class IconManager(): 
     """Singleton class for handling icons in the Blender previews system."""
@@ -128,6 +122,9 @@ class PieSave(Menu):
         op.apply_scale_options='FBX_SCALE_ALL'
 
     def draw_center_column_3(self, layout):
+        from ..operators.selected_quick_exporter import SelectedQuickExporter
+        from ..operators.open_source_path import OpenSourcePath
+
         column = layout.column(align=True)
         row = column.split(align=True)
         row.operator(OpenSourcePath.bl_idname, text="Open Output Folder", icon=OpenSourcePath.custom_icon)
@@ -140,6 +137,9 @@ class PieSave(Menu):
             row.label(text="Nothing selected!", icon=SelectedQuickExporter.custom_icon)
 
     def draw_center_column_4(self, layout):
+        from ..operators.animation_export import AnimationExporter
+        from ..operators.collection_exporter import CollectionExporter
+
         column = layout.column(align=True)
 
         if not bpy.data.is_saved:
@@ -151,7 +151,7 @@ class PieSave(Menu):
         row.scale_y = 1
         row.scale_x = 1
         
-        export_objects = find_exportable_armatures()
+        export_objects = core.find_exportable_armatures()
         if export_objects:
             collection_text = f"Export Armatures ({len(export_objects)})"
             row.operator(AnimationExporter.bl_idname, text=collection_text, icon=AnimationExporter.custom_icon)
@@ -159,7 +159,7 @@ class PieSave(Menu):
             row.label(text="No Export Armatures", icon=AnimationExporter.custom_icon)
         
 
-        export_objects = find_exportable_collections()
+        export_objects = core.find_exportable_collections()
         collection_text="No Export Collections in scene!"
         if export_objects:
             collection_text = f"Export Collections ({len(export_objects)})"
@@ -171,7 +171,6 @@ __classes__ = (
     EZUE4Menu,
     PieSave,
 )
-
 
 def register():
     """Load the icons, register the menus and add them to the Blender UI."""

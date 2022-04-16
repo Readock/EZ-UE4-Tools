@@ -1,18 +1,64 @@
 """Blender add-on preferences for the Addon"""
-
 import bpy
-import rna_keymap_ui
 from os import environ, path
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from bpy.types import AddonPreferences
-from . import get_addon_name
-from .keymap import get_addon_keymaps
+from ..utils import addon
+from os.path import normpath
+from pathlib import Path
+
+def source_path():
+    """Returns the Addon's Project source path."""
+    source_path = __preferences().source_path
+    if not source_path:
+        # use path of blend file as default
+        return Path(bpy.data.filepath).parent
+    return bpy.path.abspath(normpath(source_path))
+
+def export_prefix():
+    """Returns the Addon's export prefix for collections."""
+    return __preferences().export_prefix
+
+def export_priority_object_prefix():
+    """Returns the Addon's export prefix for priority objects."""
+    return __preferences().export_priority_object_prefix
+
+def export_exclude_object_prefix():
+    """Returns the Addon's export prefix for object exclude."""
+    return __preferences().export_exclude_object_prefix
+
+def collision_prefix():
+    """Returns the Addon's collision prefix for collections."""
+    return __preferences().collision_prefix
+
+def lowpoly_regex():
+    """Returns the Addon's lp regex for collections."""
+    return __preferences().lowpoly_regex
+
+def highpoly_regex():
+    """Returns the Addon's hp regex for collections."""
+    return __preferences().highpoly_regex
+
+def export_collection_name():
+    """Returns the Addon's export collections name"""
+    return __preferences().export_collection_name
+    
+def show_export_dialog():
+    """Returns the Addon's Project source path."""
+    return __preferences().show_export_dialog
+
+def collection_export_name_template():
+    """Export current scene only."""
+    return __preferences().collection_export_name_template
+
+def armature_export_name_template():
+    """Export current scene only."""
+    return __preferences().armature_export_name_template
 
 
 class EZUE4AddonPreferences(AddonPreferences):
     """Preferences class for the Addon"""
-
-    bl_idname = get_addon_name()
+    bl_idname = addon.get_addon_name()
     bl_label = "Source Location"
     bl_region_type = 'UI'
     bl_category = 'EZUE4'
@@ -21,6 +67,7 @@ class EZUE4AddonPreferences(AddonPreferences):
 
     def _source_path_changed(self, context):
         """Called when the source_path property is changed."""
+        
         if not self.source_path:
             self.stored_source_path = self.source_path
         elif path.exists(self.source_path):
@@ -128,12 +175,8 @@ class EZUE4AddonPreferences(AddonPreferences):
         box.prop(self, 'armature_export_name_template', expand=True)
 
         box = self.layout.box()
-        box.label(text="Key Mappings:", icon="KEY_HLT")
-        kc = bpy.context.window_manager.keyconfigs.user
-        for km, kmi in get_addon_keymaps():
-            km = km.active()
-            box.context_pointer_set("keymap", km)
-            rna_keymap_ui.draw_kmi([], kc, km, kmi, box, 0)
+        box.label(text="Pie Menu:", icon="KEY_HLT")
+        box.label(text="Ctrl + Alt + Shift + W")
 
     def set_items(self, items):
         """Sets custom properties back on this item."""
@@ -141,7 +184,10 @@ class EZUE4AddonPreferences(AddonPreferences):
             prop_val = getattr(self, item[0], None)
             if prop_val is not None:
                 setattr(self, item[0], item[1])
+                
 
+def __preferences() -> EZUE4AddonPreferences:
+    return bpy.context.preferences.addons[addon.get_addon_name()].preferences
 
 REGISTER_CLASSES = (
     EZUE4AddonPreferences,

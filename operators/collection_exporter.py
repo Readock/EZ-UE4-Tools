@@ -4,9 +4,8 @@ import bpy
 import os
 import re
 from bpy.props import BoolProperty, EnumProperty
-from ..core import find_exportable_collections, get_collision_prefix, get_export_collection_name, get_export_prefix, set_selection_priority_object_as_active, unselect_unwanted_objects_for_export
-from ..core import get_project_name, get_source_path, get_show_export_dialog, get_collision_prefix, get_lowpoly_regex, get_highpoly_regex, get_collection_export_name_template
-from ..utils import collections, modifiers, objects, export
+from ..core import find_exportable_collections, unselect_unwanted_objects_for_export, preferences
+from ..utils import collections, modifiers, objects, export, addon
 
 BUNDLE_SUFFIX = '_bundle'
 
@@ -72,7 +71,7 @@ class CollectionExporter(bpy.types.Operator):
         
 
     def invoke(self, context, event):
-        if get_show_export_dialog():
+        if preferences.show_export_dialog:
             return context.window_manager.invoke_props_dialog(self)
         return self.execute(context)
     
@@ -158,22 +157,19 @@ class CollectionExporter(bpy.types.Operator):
 
         collections.select_objects_of_collection_with_name(collection.name)
 
-        unselect_unwanted_objects_for_export()
-        set_selection_priority_object_as_active() 
-        objects.unselect_none_solid()
         # join objects of collection into one object
-        joined_object = objects.join_selected(joinedMeshName)
+        joined_object = objects.smart_join_selected(joinedMeshName)
         
         # move to export collection
-        collections.move_to_collection_with_name(joined_object, get_export_collection_name())
+        collections.move_to_collection_with_name(joined_object, preferences.export_collection_name())
         collections.find_layer_collection_with_name(collection.name).exclude = was_excluded
 
     def get_export_name_of_collection(self, collection):
         """Gets the export name of an collection"""
-        name = get_collection_export_name_template()
-        collection_name = collection.name.removeprefix(get_export_prefix())
+        name = preferences.collection_export_name_template()
+        collection_name = collection.name.removeprefix(preferences.export_prefix())
         name = name.replace("$(collection)", collection_name)
-        name = name.replace("$(file)", get_project_name())
+        name = name.replace("$(file)", addon.get_project_name())
         return name
 
     def get_bundle_export_name_of_collection(self, collection):
@@ -215,14 +211,14 @@ class CollectionExporter(bpy.types.Operator):
 
         # move to export collection
         for selected_object in bpy.context.selected_objects:
-            collections.move_to_collection_with_name(selected_object, get_export_collection_name())
+            collections.move_to_collection_with_name(selected_object, preferences.export_collection_name())
         
         if not bpy.context.selected_objects:
             return
 
         #export as bundle
         parentExportName = self.get_export_name_of_collection(collection) + BUNDLE_SUFFIX
-        export_path = os.path.join( get_source_path() , parentExportName + ".fbx")
+        export_path = os.path.join( preferences.source_path() , parentExportName + ".fbx")
         export.selected_objects_as_fbx(fix_scale = self.fix_scale_on_export, export_path=export_path)
         objects.deselect()
 
@@ -265,12 +261,13 @@ class CollectionExporter(bpy.types.Operator):
 
                 self.rename_ucx_collection_objects(ucx_collection.name, exportName)
                 collections.select_objects_of_collection(ucx_collection)
+                unselect_unwanted_objects_for_export()
         
         # set joined mesh as active
         objects.set_active(mesh)
 
         #export fbx
-        export_path = os.path.join( get_source_path() , exportName + ".fbx")
+        export_path = os.path.join( preferences.source_path() , exportName + ".fbx")
         export.selected_objects_as_fbx(fix_scale=self.fix_scale_on_export, export_path=export_path)
 
         # reset ucx exclude state
@@ -279,35 +276,35 @@ class CollectionExporter(bpy.types.Operator):
 
     def is_collection_lp(self, collection):
         """ If a collection is marked as low poly """
-        return re.search(get_lowpoly_regex(), collection.name)
+        return re.search(preferences.lowpoly_regex(), collection.name)
 
     def is_collection_hp(self, collection):
         """ If a collection is marked as high poly """
-        return re.search(get_highpoly_regex(), collection.name)
+        return re.search(preferences.highpoly_regex(), collection.name)
 
     def get_ucx_collections(self):
         """ Finds the ucx (ue collision collection) for an collection """
         collections = []
         for c in bpy.data.collections:
-            if c.name.startswith(get_collision_prefix()):
+            if c.name.startswith(preferences.collision_prefix()):
                 collections.append(c)
         return collections
 
     def get_collections_ucx(self, collection):
         """ Finds the ucx (ue collision collection) for an collection """
-        clean_name = collection.name.removeprefix(get_export_prefix())
+        clean_name = collection.name.removeprefix(preferences.export_prefix())
         for c in self.get_ucx_collections():
-            if c.name.removeprefix(get_collision_prefix()) == clean_name:
+            if c.name.removeprefix(preferences.collision_prefix()) == clean_name:
                 return c
         return None
         
     def export_collections(self, exportCollections):
         """Exports all exportCollections to a fbx file"""
-        self.set_up_export_collection_with_name(get_export_collection_name())
+        self.set_up_export_collection_with_name(preferences.export_collection_name())
         for export in exportCollections:
             self.export_collection(export)
         if self.clean_up_export:
-            collections.delete_collection_with_name(get_export_collection_name())
+            collections.delete_collection_with_name(preferences.export_collection_name())
     
         self.report({'INFO'}, f"Export Completed")
         print("==========================")

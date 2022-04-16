@@ -164,41 +164,36 @@ def delete(obj):
 
 def convert_selected_to_mesh():
     """ Converts selected objects to mesh """
-    selected_objects = get_selected()
-    active_object = get_active()
-    has_changed_selection = False
-
-    for obj in selected_objects:
-        if obj.type == "CURVE" or obj.type == "GPENCIL":
-            deselect()
-            set_active(obj)
-            has_changed_selection = True
-            switch_to_object_mode()
-            bpy.ops.object.convert(target='MESH')
-
-    # revert selection to original
-    if has_changed_selection:
-        deselect()
-        for obj in selected_objects:
-            add_to_selection(obj)
-        if active_object:
-            set_active(active_object)
+    with SelectionContext():
+        selection = get_selected()
+        for obj in selection:
+            if obj.type == "CURVE" or obj.type == "GPENCIL" or obj.type == "MESH":
+                deselect()
+                set_active(obj)
+                switch_to_object_mode()
+                bpy.ops.object.convert(target='MESH')
 
 
-def join_selected(name = None):
+def smart_join_selected(name = None):
     """ Join selected objects in a duplicate object """
     from . import modifiers
+    from ..core import set_selection_priority_object_as_active, unselect_unwanted_objects_for_export
         
     if not bpy.context.selected_objects:
         return
 
+    unselect_none_solid()
+    unselect_unwanted_objects_for_export()
+    # select best to use its config (eg. auto smooth)
+    set_selection_priority_object_as_active() 
+
     # duplicate selected objects
     bpy.ops.object.duplicate()
 
+    duplicated_active = get_active()
+
     # convert eg. curves to mesh
     convert_selected_to_mesh()
-
-    ensure_selection_has_active()
 
     # because issues with decalMachine
     resolve_atlas_uv_from_selected()
@@ -206,6 +201,12 @@ def join_selected(name = None):
     # apply modifiers
     modifiers.apply_modifiers(bpy.context.selected_objects)
         
+    # set duplicate of priority object as active (or if null any other)
+    if duplicated_active:
+        set_active(duplicated_active)
+    else:
+        ensure_selection_has_active()
+
     # join selected objects
     bpy.ops.object.join()
         
@@ -214,3 +215,24 @@ def join_selected(name = None):
         # rename joined object
         joined_object.name = name
     return joined_object
+
+class SelectionContext():
+    ''' Utility class to revert selection to previous state '''
+    selected_objects = None
+    active_object = None
+
+    def __enter__(self):
+        ''' Save current selection '''
+        self.selected_objects = get_selected()
+        self.active_object = get_active()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        ''' Revert selection to original '''
+        self.selected_objects = get_selected()
+        self.active_object = get_active()
+        deselect()
+        for obj in self.selected_objects:
+            add_to_selection(obj)
+        if self.active_object:
+            set_active(self.active_object)
