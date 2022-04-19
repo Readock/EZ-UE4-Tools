@@ -127,7 +127,7 @@ def auto_uv_selected():
     # switch back
     bpy.ops.object.mode_set(mode=og_mode)
 
-def transform_apply_preserved_normals_of_selected(location = False, scale = False, rotation = False):
+def transform_apply_preserve_normals_of_selected(location = False, scale = False, rotation = False):
     """ Applies transform and preserves the normals """
     print(f"transform_apply_preserved_normals_of_selected")
     with SelectionContext():
@@ -147,7 +147,7 @@ def transform_apply_preserved_normals_of_selected(location = False, scale = Fals
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.flip_normals()
             modes.switch_to_object()
-            
+
 def is_in_current_Scene(object):    
     current_scene = bpy.context.scene 
     return current_scene in object.users_scene
@@ -218,7 +218,7 @@ def smart_join_selected(name = None):
     # set duplicate of priority object as active (or if null any other)
     ensure_selection_has_active()
 
-    transform_apply_preserved_normals_of_selected(scale=True)
+    transform_apply_preserve_normals_of_selected(scale=True)
     
     # join selected objects
     bpy.ops.object.join()
