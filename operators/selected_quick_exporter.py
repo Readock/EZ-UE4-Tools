@@ -4,7 +4,7 @@ import bpy
 import os
 from bpy.props import BoolProperty, StringProperty
 from ..core import preferences
-from ..utils import collections, export, objects
+from ..utils import collections, export, objects, modes
 from bpy_extras.io_utils import ExportHelper
 
 class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
@@ -30,7 +30,7 @@ class SelectedQuickExporter(bpy.types.Operator, ExportHelper):
         """Exports the selected objects"""        
 
         # change to object mode
-        objects.switch_to_object_mode()
+        modes.switch_to_object()
 
         if not objects.get_selected():
             self.report({'WARNING'}, "No objects selected to export!")

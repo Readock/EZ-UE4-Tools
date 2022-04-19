@@ -3,7 +3,7 @@ import os
 import fnmatch
 from bpy.props import BoolProperty
 from ..core import find_exportable_armatures, unselect_unwanted_objects_for_export, preferences
-from ..utils import collections, modifiers, objects, armatures, export, addon
+from ..utils import collections, modifiers, objects, armatures, export, addon, modes
 
 ACTIONS_SUFFIX = "_Animations"
 
@@ -26,7 +26,7 @@ class AnimationExporter(bpy.types.Operator):
         exportable_armatures = find_exportable_armatures()
 
         # change to object mode
-        objects.switch_to_object_mode()
+        modes.switch_to_object()
         if not exportable_armatures:
             self.report({'WARNING'}, "No exportable armatures found!")
             return {'FINISHED'}

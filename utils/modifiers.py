@@ -1,10 +1,10 @@
 import bpy
+from . import objects
+from .selection_context import SelectionContext
 
 def apply_modifiers(objectList):
     """ Apply all modifiers """
-    from . import objects
-    
-    with objects.SelectionContext():
+    with SelectionContext():
         for obj in objectList:
             if obj.type == "MESH":
                 objects.set_active(obj)

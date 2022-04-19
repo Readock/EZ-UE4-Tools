@@ -1,5 +1,7 @@
 import bpy
 import os
+from . import modes
+from .selection_context import SelectionContext
 
 def add_to_selection(obj):
     """ Sets the object as selected (and not active) """
@@ -26,6 +28,7 @@ def get_selected():
 def deselect():
     """ Deselects all active elements """
     bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.objects.active = None
 
 def find_with_name(name):
     return bpy.context.scene.objects[name]
@@ -38,9 +41,9 @@ def smooth_normals_of_selected():
         # make shure we have one object active selected
         if not bpy.context.view_layer.objects.active:
             set_active(bpy.context.selected_objects[0])
-        bpy.ops.object.mode_set(mode='EDIT')
+        modes.switch_to_edit()
         bpy.ops.mesh.smooth_normals()
-        switch_to_object_mode()
+        modes.switch_to_object()
 
 def unselect_none_solid():
     """ Unselect objects that are displayed as bounds or wire (usualy cutter) """
@@ -48,16 +51,6 @@ def unselect_none_solid():
         if obj and obj.type == 'MESH':
             if obj.display_type == 'WIRE' or obj.display_type == 'BOUNDS':
                 remove_from_selection(obj)
-
-def switch_to_object_mode():
-    """ Switch mode to object mode """
-    if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-def switch_to_edit_mode():
-    """ Switch mode to object mode """
-    if bpy.context.active_object and bpy.context.active_object.mode != 'EDIT':
-        bpy.ops.object.mode_set(mode='EDIT')
 
 def get_direct_children_of(obj):
     """ Get all direct childs of a object """
@@ -126,7 +119,7 @@ def auto_uv_selected():
     if not bpy.context.active_object:
         return
     og_mode = bpy.context.active_object.mode
-    switch_to_edit_mode()
+    modes.switch_to_edit()
 
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project( island_margin=0.01)
@@ -134,6 +127,27 @@ def auto_uv_selected():
     # switch back
     bpy.ops.object.mode_set(mode=og_mode)
 
+def transform_apply_preserved_normals_of_selected(location = False, scale = False, rotation = False):
+    """ Applies transform and preserves the normals """
+    print(f"transform_apply_preserved_normals_of_selected")
+    with SelectionContext():
+        objects_to_flip = []
+        if scale:
+            for obj in get_selected():
+                flipp_normals = (obj.scale[0] * obj.scale[1] * obj.scale[2]) < 0
+                if flipp_normals: 
+                    objects_to_flip.append(obj)
+        bpy.ops.object.transform_apply(location = location, scale = scale, rotation = rotation)
+        if objects_to_flip:
+            deselect()
+            for obj in objects_to_flip:
+                add_to_selection(obj)
+            ensure_selection_has_active()
+            modes.switch_to_edit()
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.flip_normals()
+            modes.switch_to_object()
+            
 def is_in_current_Scene(object):    
     current_scene = bpy.context.scene 
     return current_scene in object.users_scene
@@ -165,7 +179,7 @@ def delete(obj):
 def convert_selected_to_mesh():
     """ Converts selected objects to mesh """
     with SelectionContext():
-        switch_to_object_mode()
+        modes.switch_to_object()
         selection = get_selected()
         for obj in selection:
             if obj.type != "CURVE" and obj.type != "GPENCIL" and obj.type != "MESH":
@@ -204,6 +218,8 @@ def smart_join_selected(name = None):
     # set duplicate of priority object as active (or if null any other)
     ensure_selection_has_active()
 
+    transform_apply_preserved_normals_of_selected(scale=True)
+    
     # join selected objects
     bpy.ops.object.join()
         
@@ -212,22 +228,3 @@ def smart_join_selected(name = None):
         # rename joined object
         joined_object.name = name
     return joined_object
-
-class SelectionContext():
-    ''' Utility class to revert selection to previous state '''
-    selected_objects = None
-    active_object = None
-
-    def __enter__(self):
-        ''' Save current selection '''
-        self.selected_objects = get_selected()
-        self.active_object = get_active()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        ''' Revert selection to original '''
-        deselect()
-        for obj in self.selected_objects:
-            add_to_selection(obj)
-        if self.active_object:
-            set_active(self.active_object)

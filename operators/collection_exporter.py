@@ -5,7 +5,7 @@ import os
 import re
 from bpy.props import BoolProperty, EnumProperty
 from ..core import find_exportable_collections, unselect_unwanted_objects_for_export, preferences
-from ..utils import collections, modifiers, objects, export, addon
+from ..utils import collections, modifiers, objects, export, addon, modes
 
 BUNDLE_SUFFIX = '_bundle'
 
@@ -35,7 +35,7 @@ class CollectionExporter(bpy.types.Operator):
         """Exports the Export Collections"""        
 
         # change to object mode
-        objects.switch_to_object_mode()
+        modes.switch_to_object()
 
         collections_to_export = self.find_filtered_exportable_collections()
         if not collections_to_export:
@@ -43,12 +43,7 @@ class CollectionExporter(bpy.types.Operator):
             return {'FINISHED'}
 
         try:
-            import cProfile
-            pr = cProfile.Profile()
-            pr.enable()
             self.export_collections(collections_to_export)
-            pr.disable()
-            pr.print_stats()
         except Exception as ex: 
             self.report({'WARNING'}, "Export Failed! See console for more information")
             print(f"Error: Failed to export, reason: {ex}")
