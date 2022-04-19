@@ -165,13 +165,15 @@ def delete(obj):
 def convert_selected_to_mesh():
     """ Converts selected objects to mesh """
     with SelectionContext():
+        switch_to_object_mode()
         selection = get_selected()
         for obj in selection:
-            if obj.type == "CURVE" or obj.type == "GPENCIL" or obj.type == "MESH":
-                deselect()
-                set_active(obj)
-                switch_to_object_mode()
-                bpy.ops.object.convert(target='MESH')
+            if obj.type != "CURVE" and obj.type != "GPENCIL" and obj.type != "MESH":
+                remove_from_selection(obj)
+        if get_selected():
+            ensure_selection_has_active()
+            # converts all selected to mesh (not only the active one)
+            bpy.ops.object.convert(target='MESH')
 
 
 def smart_join_selected(name = None):
@@ -190,22 +192,17 @@ def smart_join_selected(name = None):
     # duplicate selected objects
     bpy.ops.object.duplicate()
 
-    duplicated_active = get_active()
-
     # convert eg. curves to mesh
     convert_selected_to_mesh()
 
     # because issues with decalMachine
     resolve_atlas_uv_from_selected()
             
-    # apply modifiers
-    modifiers.apply_modifiers(bpy.context.selected_objects)
+    # apply modifiers (done with convert)
+    # modifiers.apply_modifiers(bpy.context.selected_objects)
         
     # set duplicate of priority object as active (or if null any other)
-    if duplicated_active:
-        set_active(duplicated_active)
-    else:
-        ensure_selection_has_active()
+    ensure_selection_has_active()
 
     # join selected objects
     bpy.ops.object.join()
@@ -229,8 +226,6 @@ class SelectionContext():
 
     def __exit__(self, type, value, traceback):
         ''' Revert selection to original '''
-        self.selected_objects = get_selected()
-        self.active_object = get_active()
         deselect()
         for obj in self.selected_objects:
             add_to_selection(obj)

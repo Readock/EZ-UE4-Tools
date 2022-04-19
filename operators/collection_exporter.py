@@ -27,7 +27,7 @@ class CollectionExporter(bpy.types.Operator):
     should_export_hp: BoolProperty(name="HP", default=True)
     should_export_ucx: BoolProperty(name="UCX", default=True)
 
-    should_export_disabled: BoolProperty(name="Export Excluded Collections", default=True)
+    should_export_disabled: BoolProperty(name="Export Excluded Collections", default=False)
 
     display_exportable: BoolProperty(name="Export Output", description="Should display the output result", default=False)
 
@@ -43,7 +43,12 @@ class CollectionExporter(bpy.types.Operator):
             return {'FINISHED'}
 
         try:
+            import cProfile
+            pr = cProfile.Profile()
+            pr.enable()
             self.export_collections(collections_to_export)
+            pr.disable()
+            pr.print_stats()
         except Exception as ex: 
             self.report({'WARNING'}, "Export Failed! See console for more information")
             print(f"Error: Failed to export, reason: {ex}")
