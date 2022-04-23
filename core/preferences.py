@@ -39,6 +39,10 @@ def highpoly_regex():
     """Returns the Addon's hp regex for collections."""
     return __preferences().highpoly_regex
 
+def autouv_prefix():
+    """Returns the Addon's auto uv regex for collections."""
+    return __preferences().autouv_prefix
+
 def export_collection_name():
     """Returns the Addon's export collections name"""
     return __preferences().export_collection_name
@@ -125,6 +129,13 @@ class EZUE4AddonPreferences(AddonPreferences):
         subtype='NONE'
     )
     
+    autouv_prefix: StringProperty(
+        name="Auto UV prefix",
+        description="Auto uv unwrap prefix",
+        default= "AUV_",
+        subtype='NONE'
+    )
+    
     export_collection_name: StringProperty(
         name="Export collection",
         description="Name of the collection to be used for exporting",
@@ -166,6 +177,7 @@ class EZUE4AddonPreferences(AddonPreferences):
         
         box = self.layout.box()
         box.label(text="Collection Export:", icon="OUTLINER_OB_GROUP_INSTANCE")
+        box.prop(self, 'autouv_prefix', expand=True)
         box.prop(self, 'lowpoly_regex', expand=True)
         box.prop(self, 'highpoly_regex', expand=True)
         box.prop(self, 'collection_export_name_template', expand=True)

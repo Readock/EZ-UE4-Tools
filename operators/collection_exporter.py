@@ -18,7 +18,7 @@ class CollectionExporter(bpy.types.Operator):
     custom_icon = 'OUTLINER_OB_GROUP_INSTANCE'
 
     fix_scale_on_export: BoolProperty(name="Fix Scale", description="Scale x100 to fix unreal scaling issues", default=True)
-    auto_uv_unwrap_export: BoolProperty(name="Auto UV Unwrap", description="Automated unwrapping after merging objects", default=False)
+    auto_uv_unwrap_export: BoolProperty(name="Force AutoUV Unwrap", description="Force Automated unwrapping after merging objects for all collections", default=False)
     clean_up_export: BoolProperty(name="Clean-Up Export", description="Clean-Up will delete the meshes generated for export", default=True)
     child_bundle_export: BoolProperty(name="Bundle Children", description="Merges child collections seperate and exports them as one fbx (not joined together)", default=True)
 
@@ -118,6 +118,8 @@ class CollectionExporter(bpy.types.Operator):
                 row.label(icon="EXPORT")
                 if self.should_export_ucx and self.get_collections_ucx(collection):
                     row.label(icon="MESH_CUBE")
+                if self.auto_uv_unwrap_export or self.is_collection_with_auto_uv_export(collection):
+                    row.label(icon="TEXTURE")
                 row.label(text=self.get_export_name_of_collection(collection))
                 if collection.children and self.child_bundle_export:
                     box2.row().label(text=self.get_bundle_export_name_of_collection(collection), icon="EXPORT")       
@@ -164,10 +166,17 @@ class CollectionExporter(bpy.types.Operator):
         collections.move_to_collection_with_name(joined_object, preferences.export_collection_name())
         collections.find_layer_collection_with_name(collection.name).exclude = was_excluded
 
+    def is_collection_with_auto_uv_export(self, collection):
+        """Should collection use auto uv when exporting"""
+        if collection:
+            return collection.name.startswith(preferences.export_prefix() + preferences.autouv_prefix())
+        return False
+
     def get_export_name_of_collection(self, collection):
         """Gets the export name of an collection"""
         name = preferences.collection_export_name_template()
         collection_name = collection.name.removeprefix(preferences.export_prefix())
+        collection_name = collection_name.removeprefix(preferences.autouv_prefix())
         name = name.replace("$(collection)", collection_name)
         name = name.replace("$(file)", addon.get_project_name())
         return name
@@ -199,7 +208,7 @@ class CollectionExporter(bpy.types.Operator):
             self.join_collection(childCollection, self.get_export_name_of_collection(childCollection))
 
         # auto uv
-        if self.auto_uv_unwrap_export:
+        if self.auto_uv_unwrap_export or self.is_collection_with_auto_uv_export(collection):
             for childCollection in collection.children:
                 objects.deselect()
                 objects.set_active_with_name(self.get_export_name_of_collection(childCollection))
@@ -245,7 +254,7 @@ class CollectionExporter(bpy.types.Operator):
         objects.set_active(mesh)
 
         # auto UV
-        if self.auto_uv_unwrap_export:
+        if self.auto_uv_unwrap_export or self.is_collection_with_auto_uv_export(collection):
             objects.auto_uv_selected()
 
         # prepare and select ucx (colliders)
