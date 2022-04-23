@@ -1,4 +1,4 @@
-
+import subprocess
 import os
 import sys
 import bpy
@@ -21,3 +21,10 @@ def get_project_name():
     """Get name of the current project"""
     projectName, _ = os.path.splitext(bpy.path.basename(bpy.context.blend_data.filepath))
     return projectName
+
+def get_blend_file_path():
+    """Gets the blend file path ex. C:\\myfile.blend """
+    return bpy.context.blend_data.filepath
+
+def is_blend_file_saved():
+    return bpy.data.is_saved

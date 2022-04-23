@@ -4,8 +4,10 @@ import bpy
 from os import listdir, path
 from bpy.types import Menu
 from bpy.utils import previews, register_class, unregister_class
+
 from .. import core
-from ..utils import objects
+from ..core import preferences
+from ..utils import objects, addon, perforce
 
 __icon_manager__ = None
 
@@ -63,30 +65,35 @@ class PieSave(Menu):
         pie = layout.menu_pie()
 
         # 4 - LEFT
-        pie.operator("wm.open_mainfile", text="Open...", icon_value=get_icon('open'))
+        pie.operator("wm.open_mainfile", text="Open...", icon="FILE_FOLDER")
 
         # 6 - RIGHT
-        pie.operator("machin3.save", text="Save", icon_value=get_icon('save'))
+        pie.operator("machin3.save", text="Save", icon="FILE_TICK")
 
         # 2 - BOTTOM
-        pie.operator("wm.save_as_mainfile", text="Save As..", icon_value=get_icon('save_as'))
+        pie.operator("wm.save_as_mainfile", text="Save As..", icon="FILE_NEW")
 
         # 8 - TOP
         box = pie.split()
         # box = pie.box().split()
 
         column = box.column()
-        b = column.box()
-        self.draw_center_column_1(b)
 
         b = column.box()
-        self.draw_center_column_2(context, b)
+        self.draw_blender_append_link(b)
+
+        if preferences.perforce_enabled():
+            b = column.box()
+            self.draw_perforce(b)
 
         b = column.box()
-        self.draw_center_column_3(b)
+        self.draw_fbx_import_export(context, b)
 
         b = column.box()
-        self.draw_center_column_4(b)
+        self.draw_quick_export(b)
+
+        b = column.box()
+        self.draw_export_options(b)
         
         # 7 - TOP - LEFT
         pie.separator()
@@ -95,7 +102,7 @@ class PieSave(Menu):
         pie.separator()
 
 
-    def draw_center_column_1(self, layout):
+    def draw_blender_append_link(self, layout):
         column = layout.column(align=True)
 
         row = column.split(factor=0.25, align=True)
@@ -104,7 +111,7 @@ class PieSave(Menu):
         row.operator("wm.append", text="Append", icon_value=get_icon('append'))
         row.operator("wm.link", text="Link", icon_value=get_icon('link'))
 
-    def draw_center_column_2(self, context, layout):
+    def draw_fbx_import_export(self, context, layout):
         column = layout.column(align=True)
 
         row = column.split(factor=0.25, align=True)
@@ -120,8 +127,28 @@ class PieSave(Menu):
         op = r.operator("export_scene.fbx", text="Export", icon_value=get_icon('export'))
         op.use_selection = True if context.selected_objects else False
         op.apply_scale_options='FBX_SCALE_ALL'
+        
+    def draw_perforce(self, layout):
+        from ..operators.perforce_checkout import PerforceCheckout
+        if not bpy.data.is_saved:
+            return
+        column = layout.column(align=True)
 
-    def draw_center_column_3(self, layout):
+        if not perforce.is_perforce_installed():
+            row = column.split(align=True)
+            row.label(text="P4 is not installed!", icon="ERROR")
+            return
+
+        row = column.split(factor=0.25, align=True)
+        row.label(text="P4", icon_value=get_icon('p4'))
+        
+        if perforce.is_blend_file_readable():
+            row.label(text="File is writable", icon="UNLOCKED")
+            return
+
+        row.operator(PerforceCheckout.bl_idname, text="Checkout", icon="LOCKED")
+
+    def draw_quick_export(self, layout):
         from ..operators.selected_quick_exporter import SelectedQuickExporter
         from ..operators.open_source_path import OpenSourcePath
 
@@ -136,13 +163,13 @@ class PieSave(Menu):
         else:
             row.label(text="Nothing selected!", icon=SelectedQuickExporter.custom_icon)
 
-    def draw_center_column_4(self, layout):
+    def draw_export_options(self, layout):
         from ..operators.animation_export import AnimationExporter
         from ..operators.collection_exporter import CollectionExporter
 
         column = layout.column(align=True)
 
-        if not bpy.data.is_saved:
+        if not addon.is_blend_file_saved():
             row = column.split(align=True)
             row.label(text="Save blend file first!", icon="ERROR")
             return

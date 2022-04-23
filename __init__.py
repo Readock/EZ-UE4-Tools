@@ -1,9 +1,11 @@
 """ A Blender add-on for faster fbx exporting """
-
+import time
 import bpy
 from . import operators
 from .core import menus, preferences, ui, keymap
+from .utils import perforce, message
 from inspect import isclass
+from bpy.app.handlers import persistent
 
 bl_info = {
         "name": "EZ-UE4 Tools",
@@ -32,6 +34,8 @@ REGISTER_CLASSES = (
 def register():
     """Register all of the Addon classes."""
     register_recursive(REGISTER_CLASSES)
+    bpy.app.handlers.load_post.append(check_for_p4)
+    bpy.app.handlers.save_post.append(check_for_p4)
 
 def unregister():
     """Unregister all of the Addon classes."""
@@ -60,3 +64,9 @@ def unregister_recursive(objects):
             unregister_recursive(obj.REGISTER_CLASSES)
         else:
             print(f"Warning: Failed to find anything to unregister for '{obj}'")
+
+
+@persistent
+def check_for_p4(dummy):
+    if preferences.perforce_enabled() and not perforce.is_blend_file_readable():
+        message.show("ERROR: ", "Blend file needs checkout!", "ERROR")

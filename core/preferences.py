@@ -59,6 +59,10 @@ def armature_export_name_template():
     """Export current scene only."""
     return __preferences().armature_export_name_template
 
+def perforce_enabled():
+    """If p4 is enabled"""
+    return __preferences().perforce_enabled
+
 
 class EZUE4AddonPreferences(AddonPreferences):
     """Preferences class for the Addon"""
@@ -165,6 +169,12 @@ class EZUE4AddonPreferences(AddonPreferences):
         subtype='NONE'
     )
 
+    perforce_enabled: BoolProperty(
+        name="Perforce (P4) support",
+        description="If enabled, p4 options are available",
+        default=True,
+    )
+
     def draw(self, context):
         """Draws the preferences."""
         self.layout.prop(self, 'source_path', expand=True)
@@ -174,6 +184,7 @@ class EZUE4AddonPreferences(AddonPreferences):
         self.layout.prop(self, 'export_exclude_object_prefix', expand=True)        
         self.layout.prop(self, 'collision_regex', expand=True)
         self.layout.prop(self, 'export_collection_name', expand=True)
+        self.layout.prop(self, 'perforce_enabled', expand=True)
         
         box = self.layout.box()
         box.label(text="Collection Export:", icon="OUTLINER_OB_GROUP_INSTANCE")
@@ -188,7 +199,7 @@ class EZUE4AddonPreferences(AddonPreferences):
 
         box = self.layout.box()
         box.label(text="Pie Menu:", icon="KEY_HLT")
-        box.label(text="Ctrl + Alt + Shift + W")
+        box.label(text="Default hotkey: Ctrl + Alt + Shift + W")
 
     def set_items(self, items):
         """Sets custom properties back on this item."""
