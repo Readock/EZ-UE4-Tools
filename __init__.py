@@ -68,5 +68,6 @@ def unregister_recursive(objects):
 
 @persistent
 def check_for_p4(dummy):
-    if preferences.perforce_enabled() and not perforce.is_blend_file_readable():
+    """Check if blend file needs checkout"""
+    if preferences.perforce_enabled() and perforce.is_checkout_needed():
         message.show("ERROR: ", "Blend file needs checkout!", "ERROR")

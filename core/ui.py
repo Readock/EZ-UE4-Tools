@@ -142,7 +142,7 @@ class PieSave(Menu):
         row = column.split(factor=0.25, align=True)
         row.label(text="P4", icon_value=get_icon('p4'))
         
-        if perforce.is_blend_file_readable():
+        if perforce.is_blend_file_checked_out():
             row.label(text="File is writable", icon="UNLOCKED")
             return
 
