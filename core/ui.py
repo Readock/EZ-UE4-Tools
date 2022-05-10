@@ -143,7 +143,7 @@ class PieSave(Menu):
         row.label(text="P4", icon_value=get_icon('p4'))
         
         if perforce.is_blend_file_checked_out():
-            row.label(text="File is writable", icon="UNLOCKED")
+            row.label(text="File is writeable", icon="UNLOCKED")
             return
 
         row.operator(PerforceCheckout.bl_idname, text="Checkout", icon="LOCKED")
