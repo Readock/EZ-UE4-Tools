@@ -68,7 +68,7 @@ class PieSave(Menu):
         pie.operator("wm.open_mainfile", text="Open...", icon="FILE_FOLDER")
 
         # 6 - RIGHT
-        pie.operator("machin3.save", text="Save", icon="FILE_TICK")
+        pie.operator("wm.save_mainfile", text="Save", icon="FILE_TICK")
 
         # 2 - BOTTOM
         pie.operator("wm.save_as_mainfile", text="Save As..", icon="FILE_NEW")
