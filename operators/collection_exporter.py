@@ -36,7 +36,7 @@ class CollectionExporter(bpy.types.Operator):
 
         # change to object mode
         modes.switch_to_object()
-        modes.switch_to_not_local_view()
+        modes.exit_local_view()
 
         collections_to_export = self.find_filtered_exportable_collections()
         if not collections_to_export:

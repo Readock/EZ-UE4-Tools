@@ -27,7 +27,7 @@ class AnimationExporter(bpy.types.Operator):
 
         # change to object mode
         modes.switch_to_object()
-        modes.switch_to_not_local_view()
+        modes.exit_local_view()
 
         if not exportable_armatures:
             self.report({'WARNING'}, "No exportable armatures found!")
