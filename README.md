@@ -1,4 +1,4 @@
-# EZ-UE4-Tools
+# EZ UE4 Tools
 
 Simple Blender Addon to allow collection based fbx export. Developed to work with unreal engine.
 
