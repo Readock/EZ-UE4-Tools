@@ -28,3 +28,25 @@ def get_blend_file_path():
 
 def is_blend_file_saved():
     return bpy.data.is_saved
+
+def get_addon(addon, debug=False):
+    import addon_utils
+
+    for mod in addon_utils.modules():
+        name = mod.bl_info["name"]
+        version = mod.bl_info.get("version", None)
+        foldername = mod.__name__
+        path = mod.__file__
+        enabled = addon_utils.check(foldername)[1]
+
+        if name == addon:
+            if debug:
+                print(name)
+                print("  enabled:", enabled)
+                print("  folder name:", foldername)
+                print("  version:", version)
+                print("  path:", path)
+                print()
+
+            return enabled, foldername, version, path
+    return False, None, None, None

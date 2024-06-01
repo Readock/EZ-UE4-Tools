@@ -113,12 +113,21 @@ class PieSave(Menu):
 
     def draw_fbx_import_export(self, context, layout):
         column = layout.column(align=True)
+        wavefront_addon = None
+
+        if bpy.app.version <= (4, 0, 0) and wavefront_addon is None:
+            wavefront_addon = addon.get_addon('Wavefront OBJ format')[0]
 
         row = column.split(factor=0.25, align=True)
         row.label(text="OBJ")
         r = row.row(align=True)
-        r.operator("import_scene.obj", text="Import", icon_value=get_icon('import'))
-        r.operator("export_scene.obj", text="Export", icon_value=get_icon('export')).use_selection = True if context.selected_objects else False
+
+        if wavefront_addon:
+            r.operator("import_scene.obj", text="Import", icon_value=get_icon('import'))
+            r.operator("export_scene.obj", text="Export", icon_value=get_icon('export')).use_selection = True if context.selected_objects else False
+        else:
+            r.operator("wm.obj_import", text="Import", icon_value=get_icon('import'))
+            r.operator("wm.obj_export", text="Export", icon_value=get_icon('export')).export_selected_objects = True if context.selected_objects else False
 
         row = column.split(factor=0.25, align=True)
         row.label(text="FBX")
